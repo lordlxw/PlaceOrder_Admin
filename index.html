@@ -1,16 +1,111 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + Vue + TS "Electron打包！！！"</title>
+    <link rel="icon" href="/vite.svg" type="image/svg+xml" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
+    <style>
+      /* 全局样式 */
+      body {
+        font-family: 'Roboto', sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f0f4f8;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        color: #333;
+      }
+
+      .login-container {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+        padding: 40px;
+        box-sizing: border-box;
+      }
+
+      h1 {
+        text-align: center;
+        font-size: 2rem;
+        margin-bottom: 20px;
+        color: #4caf50;
+      }
+
+      .input-field {
+        width: 100%;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 16px;
+        outline: none;
+        transition: border 0.3s ease;
+      }
+
+      .input-field:focus {
+        border-color: #4caf50;
+      }
+
+      .btn {
+        width: 100%;
+        padding: 12px;
+        background-color: #4caf50;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .btn:hover {
+        background-color: #45a049;
+      }
+
+      .forgot-password {
+        text-align: center;
+        margin-top: 15px;
+      }
+
+      .forgot-password a {
+        color: #4caf50;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      /* 响应式布局 */
+      @media (max-width: 500px) {
+        .login-container {
+          padding: 30px;
+        }
+
+        h1 {
+          font-size: 1.5rem;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="app">
-      <h1>12345</h1>
+      <div class="login-container">
+        <h1>登录</h1>
+        <form>
+          <input type="text" class="input-field" placeholder="请输入用户名" />
+          <input type="password" class="input-field" placeholder="请输入密码" />
+          <button type="submit" class="btn">登录</button>
+        </form>
+        <div class="forgot-password">
+          <a href="#">忘记密码?</a>
+        </div>
+      </div>
     </div>
 
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>

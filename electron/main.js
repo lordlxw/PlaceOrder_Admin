@@ -1,40 +1,72 @@
-const{app,BrowserWindow} = require('electron')
-const path = require('path')
+const { app, BrowserWindow, ipcMain, globalShortcut } = require("electron");
+const { join } = require("path");
+const glob = require("glob");
+const fs = require("fs");
+const lockFilePath = join(__dirname, "../lockfile");
+const MultiWindows = require("./background");
 
-function createMainWindow()
-{
-    const win = new BrowserWindow({
-        width:800,
-        height:600
-    })
-      // 加载本地打包好的文件
-     // 根据 NODE_ENV 环境变量判断加载模式
-    // 确保这里的路径是根目录下的 dist 文件夹
-    const filePath = path.join(__dirname, '..', 'dist', 'index.html');
-    console.log('Loading file from:', filePath); // 打印文件路径进行调试
+// 屏蔽安全警告
+// ectron Security Warning (Insecure Content-Security-Policy)
+process.env["ELECTRON_DISABLE_SECURITY_WARNINGS"] = "true";
+const hasLock = tryGetLock();
 
-    win.loadURL(`file://${filePath}`);
-     
-    //  if (process.env.NODE_ENV === 'development') {
-    //     win.loadURL('http://localhost:5173');
-    // } else {
-    //     win.loadFile(path.join(__dirname, 'dist', 'index.html'));
-    // }
+const createWindow = () => {
+  if (hasLock || true) {
+    const window = new MultiWindows();
+    // background.js
+    // 多窗口数据存储
+    global.sharedObject = {
+      independentWindow: new Map()
+    };
+    console.log('pika')
+    window.loadProcess();
+    window.makeSingleInstance();
+    window.ipcMainListen();
+  } else {
+    app.quit();
+  }
+};
+
+function tryGetLock() {
+  try {
+    // 尝试创建一个锁文件
+    console.log("锁文件路径为"+lockFilePath)
+    fs.closeSync(fs.openSync(lockFilePath, "wx"));
+    console.log("Lock acquired");
+    return true;
+  } catch (e) {
+    // 如果文件已经存在，说明没有获取到锁
+    if (e.code === "EEXIST") {
+      console.log("Lock already held by another process");
+      return false;
+    }
+    // 其他错误处理
+    console.error("Unexpected error while trying to acquire lock:", e);
+    return false;
+  }
 }
 
-app.whenReady().then(()=>{
-    createMainWindow()
-    app.on('activate',()=>{
-        if(BrowserWindow.getAllWindows().length==0)
-        {
-            createMainWindow()
-        }
-    })
-})
+function releaseLock() {
+  try {
+    // 删除锁文件
+    fs.unlinkSync(lockFilePath);
+    console.log("Lock released");
+  } catch (e) {
+    console.error("Error while releasing lock:", e);
+  }
+}
 
-app.on('window-all-closed',()=>{
-    if(process.platform!='darwin')
-    {
-        app.quit()
-    }
+app.whenReady().then(() => {
+  createWindow();
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
+});
+
+app.on('will-quit', () => {
+  releaseLock();
 })
