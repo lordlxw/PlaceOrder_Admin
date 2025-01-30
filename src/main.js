@@ -6,3 +6,9 @@
 // app.use(router);                 // 使用路由登录
 // app.use(store);                  // 使用状态管理
 // app.mount('#app');               // 挂载应用到 #app 元素上
+import { createApp } from 'vue'
+import App from './App.vue'
+
+
+console.log("11111222222")
+createApp(App).mount('#app')

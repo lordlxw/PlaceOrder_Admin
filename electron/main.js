@@ -70,3 +70,12 @@ app.on("window-all-closed", () => {
 app.on('will-quit', () => {
   releaseLock();
 })
+
+
+
+//通用方法，打开一个窗口
+function createNewWindow(url, options = {}) {
+  const win = new BrowserWindow(options);
+  win.loadFile(path.join(__dirname, url));
+  return win;
+}
