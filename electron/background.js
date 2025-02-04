@@ -129,7 +129,7 @@ const {
        // 使用硬编码的路径
       const hardwinURL = 'file:///C:/Users/admin/Desktop/PlaceOrder_Admin/PlaceOrder_Admin/dist/index.html';
       //win.loadURL($url);
-      win.loadURL(hardwinURL);
+      win.loadURL(winURL);
       win.once("ready-to-show", () => {
         win.show();  // 只有在窗口准备好显示时才会显示窗口
       });
@@ -175,10 +175,10 @@ const {
       if (process.mas) return;
   
       const loginArg = {
-        height:365,
-        width:320,
-        minHeight:325,
-        minWidth:365,
+        height:865,
+        width:620,
+        minHeight:865,
+        minWidth:620,
         resize: false, // 是否支持缩放
         maximize: false, // 最大化窗口
         isMultiWin: false, // 是否支持多开窗口

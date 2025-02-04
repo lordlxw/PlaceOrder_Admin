@@ -75,6 +75,15 @@ app.on('will-quit', () => {
 
 //通用方法，打开一个窗口
 function createNewWindow(url, options = {}) {
+  const defaultOptions={
+    width:800,
+    height:600,
+    webPreferences:{
+      nodeIntegration:true,
+      preload:path.join(__dirname,"preload.js")
+    }
+  }
+  options = Object.assign(defaultOptions,options);
   const win = new BrowserWindow(options);
   win.loadFile(path.join(__dirname, url));
   return win;

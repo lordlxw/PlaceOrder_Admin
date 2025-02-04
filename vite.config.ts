@@ -8,4 +8,9 @@ export default defineConfig({
   build: {
     outDir: 'dist',
   },
+  resolve: {
+    alias: {
+      '@': '/src', // 确保这里是指向 `src` 文件夹
+    },
+  },
 });

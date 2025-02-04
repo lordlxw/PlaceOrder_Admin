@@ -1,48 +1,254 @@
 <template>
-  <div class="login-container">
-    <div class="login-header">登录</div>
-    <form @submit.prevent="handleSubmit">
-      <input
-        type="text"
-        v-model="username"
-        class="input-field"
-        placeholder="请输入用户名"
-      />
-      <input
-        type="password"
-        v-model="password"
-        class="input-field"
-        placeholder="请输入密码"
-      />
-      <div>
-        <button type="submit" class="btn">登录</button>
+  <div class="app">
+    <div class="login-container">
+      <div class="login-header">登录</div>
+      <form ref="ruleForm" @submit.prevent="submitForm('ruleForm')">
+        <input
+          type="text"
+          v-model="username"
+          class="input-field"
+          placeholder="请输入用户名"
+          @keyup.enter="submitForm('ruleForm')"
+        />
+        <input
+          type="password"
+          v-model="password"
+          class="input-field"
+          placeholder="请输入密码"
+          @keyup.enter="submitForm('ruleForm')"
+        />
+        <div>
+          <button class="btn">登录</button>
+        </div>
+
+        <!-- <div>
+          <button @click="myCount">Add 2</button>
+          <p>Count is: {{ count }}</p>
+        </div> -->
+      </form>
+
+      <!-- <div>
+        <button @click="test">测试</button>
+      </div> -->
+      <div class="forgot-password">
+        <a href="#">忘记密码?</a>
       </div>
-    </form>
-    <div class="forgot-password">
-      <a href="#">忘记密码?</a>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      username: "",
-      password: "",
-    };
-  },
-  methods: {
-    handleSubmit() {
-      // 登录逻辑
-      console.log("Username:", this.username);
-      console.log("Password:", this.password);
-    },
-  },
+<script setup>
+import { ref, onMounted, onUnmounted, inject } from "vue"; // 引入 ref 和 onMounted
+import { debounce } from "@/utils/debounce"; // 引入 debounce 函数
+import md5 from "js-md5";
+// 定义响应式数据
+const username = ref("liuxinwei");
+const password = ref("");
+const count = ref(0);
+const $md5 = inject("$md5");
+// onMounted 生命周期钩子
+onMounted(() => {
+  // 你的原始代码逻辑
+  console.log("Login---onMounted生命周期钩子被调用");
+  // 如果你使用的是 Electron, 可按需进行操作
+});
+
+onUnmounted(() => {
+  // 你的原始代码逻辑
+  console.log("Login---onUnmounted生命周期钩子被调用");
+  // 如果你使用的是 Electron, 可按需进行操作
+});
+
+const myCount = () => {
+  count.value += 2; // 通过 `.value` 更新 ref 类型的变量
+  console.log(`当前Count为：${count.value}`);
+};
+
+// const submitForm = () => {
+//   // 在这里处理表单提交的逻辑
+//   console.log(`Submitting form: 123`);
+// };
+
+const test = () => {
+  // 在这里处理表单提交的逻辑
+  console.log(`11111Submitting form: 123`);
+};
+// 提交表单的方法
+const submitForm = function (formName) {
+  console.log("点击登录键！");
+  const { mac } = window.electronApi
+    ? window.electronApi.getNetwork()
+    : { mac: "cc:5e:f8:f0:5f:85" };
+  console.log("mac地址是:", mac);
+  console.log(`11112222`);
+  let testVal = "11111";
+  var hwinfo2 = md5(testVal);
+  console.log(`hwinfo2:${hwinfo2}`);
+  console.log(`formName:${formName}`);
+  // var hwinfo = $md5(mac.replace(/:/g, ""));
+  // console.log(`hwinfo是:${mac}`);
+  this.$refs[formName].validate((valid) => {
+    if (valid) {
+      api
+        .login(
+          {
+            username: this.ruleForm.username,
+            password: this.ruleForm.password,
+            uuid: this.uuid,
+            code: this.ruleForm.code,
+            hwinfo: hwinfo,
+          },
+          this.labelPosition === "Simulation" ? "BondHelper" : "BondHelper",
+          this.labelPosition === "Simulation" ? "sim" : "admin"
+        )
+        .then((response) => {
+          if (response && response.code === 200) {
+            // 保存 token 信息
+            Promise.all([this.$store.commit("SET_TOKEN", response.token)]).then(
+              () => {
+                api.auth().then(async (response) => {
+                  if (response && response.code === 200) {
+                    const { value: brokers } = await api.chatReceiver();
+                    this.$store.commit("SET_USER_INFO", {
+                      permissions: response.permissions,
+                      userName: response.user.userName,
+                      userId: response.user.userId,
+                      roleName: response.user.roles[0].roleName,
+                      menutree: response.menutree,
+                      brokers: brokers,
+                      ...response.user,
+                    });
+                  }
+                  let $path = "/simulation/main";
+                  if (this.labelPosition === "lily") {
+                    $path = "/dashboard";
+                  }
+
+                  if (this.isElectron) {
+                    const displays = await window.v1.getAllDisplays();
+                    this.$store.commit("SET_WIN_INFO", {
+                      displays,
+                    });
+                    if (this.labelPosition === "lily") {
+                      const maxWidth = Math.max(
+                        ...displays.map((display) => display.bounds.width)
+                      );
+                      const minWidth = Math.ceil(maxWidth * 0.7);
+                      const minHeight = Math.ceil(minWidth * 0.6);
+                      const args = {
+                        id: "main",
+                        width: minWidth, // 窗口宽度
+                        height: minHeight, // 窗口高度
+                        isMainWin: true,
+                        resize: true, // 是否支持缩放
+                        maximize: false, // 最大化窗口
+                        isMultiWin: true, // 是否支持多开窗口
+                        route: $path,
+                      };
+
+                      console.log(args);
+                      window.v1
+                        .createWin(args)
+                        .then((response) => {
+                          window.v1.close();
+                        })
+                        .catch((error) => {
+                          // 处理错误
+                          console.error(error);
+                        });
+                    } else {
+                      const { code, value, message } = await api.getProfile(
+                        response.user.userId
+                      );
+                      if (code !== "00000") {
+                        return this.$message({
+                          message: `${message}`,
+                          type: "error",
+                        });
+                      }
+                      const klineWins =
+                        value && value.wins ? JSON.parse(value.wins) : [];
+                      if (
+                        klineWins.length > 0 &&
+                        this.labelPosition !== "lily"
+                      ) {
+                        klineWins.forEach((args, index) => {
+                          window.v1
+                            .createWin(args)
+                            .then((response) => {
+                              console.log("args: ", response, args);
+                            })
+                            .catch((error) => {
+                              // 处理错误
+                              console.error(error);
+                            });
+                        });
+                        window.v1.close();
+                      } else {
+                        const maxWidth = Math.max(
+                          ...displays.map((display) => display.bounds.width)
+                        );
+                        const minWidth = Math.ceil(maxWidth / 2 + 100);
+                        const minHeight = Math.ceil(minWidth * 0.63);
+
+                        // const maxWidth = Math.max(...displays.map(display => display.bounds.width));
+                        // const minWidth = Math.ceil(maxWidth * 0.7);
+                        // const minHeight = Math.ceil(minWidth * 0.6);
+                        const args = {
+                          width: minWidth, // 窗口宽度
+                          height: minHeight, // 窗口高度
+                          minWidth: minWidth, // 窗口最小宽度
+                          maxWidth: minWidth,
+                          isMainWin: true,
+                          resize: true, // 是否支持缩放
+                          maximize: false, // 最大化窗口
+                          isMultiWin: true, // 是否支持多开窗口
+                          route: $path,
+                        };
+
+                        console.log(args);
+                        window.v1
+                          .createWin(args)
+                          .then((response) => {
+                            window.v1.close();
+                          })
+                          .catch((error) => {
+                            // 处理错误
+                            console.error(error);
+                          });
+                      }
+                    }
+                  } else {
+                    this.$router.push({ path: $path });
+                  }
+                });
+              }
+            );
+          } else {
+            this.$message({
+              message: `${response.message}`,
+              type: "error",
+            });
+          }
+        });
+    } else {
+      this.$message.error("验证失败");
+    }
+  });
 };
 </script>
 
 <style scoped>
+.electron .app {
+  background: rgb(193, 206, 122); /* 恢复正常背景 */
+}
+.app {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #f5f5f5;
+}
 /* 登录界面的样式 */
 .login-container {
   background-color: rgba(255, 255, 255, 0.8);
@@ -93,7 +299,6 @@ export default {
 .btn:hover {
   background-color: #45a049;
 }
-
 .forgot-password {
   text-align: center;
   margin-top: 15px;
