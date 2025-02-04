@@ -1,3 +1,4 @@
+//封装防抖 2025/2/2
 export const debounce = (fn, delay = 300) => {
     let timeId = null
     console.log("进入debounce防抖");

@@ -18,6 +18,18 @@ const app = createApp(App)
 console.log(window);
 
 console.log("window"+window);
+// 设置全局属性
+app.config.globalProperties.$md5 = md5;
+app.config.globalProperties.$apiUrl = import.meta.env.VITE_BASE_API;
+app.config.globalProperties.$wsUrl = import.meta.env.VITE_WS_URL;
+app.config.globalProperties.$appType = import.meta.env.VITE_PROJECT_NAME;
+
+console.log('API URL:', import.meta.env.VITE_BASE_API);  // 输出 BASE_API
+console.log('WebSocket URL:', import.meta.env.VITE_WS_URL); // 输出 WS_URL
+console.log('Project Name:', import.meta.env.VITE_PROJECT_NAME); // 输出 PROJECT_NAME
+console.log('App Title:', import.meta.env.VITE_APP_TITLE); // 输出 PROJECT_NAME
+
+
 // main.js 或者 main.ts
 // 判断是否是 Electron 环境
 var userAgent = navigator.userAgent.toLowerCase();
@@ -29,8 +41,6 @@ if (userAgent.indexOf(' electron/') > -1) {
   // 如果不是 Electron 环境，执行此块代码
   console.log("当前不是 Electron 环境");
 }
-// 将 md5 函数挂载到全局属性
-app.config.globalProperties.$md5 = md5
 
 // 输出调试信息
 console.log("11111222222")
