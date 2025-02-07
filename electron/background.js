@@ -4,8 +4,12 @@ const {
     BrowserWindow,
     ipcMain,
     screen,
-    globalShortcut
+    globalShortcut,
+    Menu
   } = require("electron");
+
+  // 去掉菜单栏
+  //Menu.setApplicationMenu(null);
   const { join } = require("path");
   const glob = require("glob");
   process.env.ROOT = join(__dirname, "../");
@@ -40,7 +44,7 @@ const {
     modal: false, // 模态窗口（模态窗口是浮于父窗口上，禁用父窗口）
     alwaysOnTop: false, // 置顶窗口
     webPreferences: {},
-    sharSession: true,
+    shareSession: true,
     transparent: true
   };
   
@@ -81,11 +85,17 @@ const {
   
     // 创建新窗口
     createWin(options) {
+      console.log(options);
+      console.log('options222');
       const args = Object.assign({}, defaultConfig, options);
       console.log("options: " + JSON.stringify(args, null, 2));
 
-  
+  // 处理 frame 参数
+ 
       let opt = this.winOpts();
+      if (typeof args.frame === "boolean") {
+        opt.frame = args.frame; // 如果 options 中有 frame 参数，设置它
+      }
       if (args.parent) {
         opt.parent = this.getWin(args.parent);
       }
@@ -109,11 +119,19 @@ const {
       const allWin = this.getAllWin();
       if (args.webPreferences && args.webPreferences.session) {
         opt.webPreferences.session = args.webPreferences.session;
-      } else if (args.sharSession && allWin.length > 0) {
+      } else if (args.shareSession && allWin.length > 0) {
         opt.webPreferences.session = allWin[0].webContents.session;
       }
+      console.log('opt123');
+      // 创建窗口对象之前打印 opt
+      //opt.frame=true;
+      opt.titleBarStyle='default';
       // 创建窗口对象
-      // Menu.setApplicationMenu(null);
+      //Menu.setApplicationMenu(null);
+ 
+
+      console.log(opt);
+
       const win = new BrowserWindow({
         ...opt
       });
@@ -123,21 +141,125 @@ const {
       : process.env.VITE_DEV_SERVER_URL
       ? process.env.VITE_DEV_SERVER_URL
       : winURL;
-
-      console.log("Url:"+$url);
+      console.log("RealUrl:"+$url);
 
        // 使用硬编码的路径
       const hardwinURL = 'file:///C:/Users/admin/Desktop/PlaceOrder_Admin/PlaceOrder_Admin/dist/index.html';
+      const hardwinURL2 = 'C:\\Users\\admin\\Desktop\\PlaceOrder_Admin\\PlaceOrder_Admin\\dist\\index.html#/login';
+
       //win.loadURL($url);
-      win.loadURL(winURL);
+      console.log("hardwinURL:"+hardwinURL);
+      console.log("hardwinURL2:"+hardwinURL2);
+      //win.loadURL('/login');
+      win.loadURL($url);
       win.once("ready-to-show", () => {
         win.show();  // 只有在窗口准备好显示时才会显示窗口
       });
-      
+      this.winLs[win.id] = {
+        route: args.route,
+        isMultiWin: args.isMultiWin,
+        win: win,
+        ...options
+      };
+      console.log("mmmmm");
+      return;
+      // args.id = win.id;
+      // console.log("current win ", this.winLs[options.id || win.id]);
+      if (args.isMainWin) {
+      console.log("nnnnn");
+        win.on("close", e => {
+          this.winLs = {};
+          e.preventDefault();
+          win.setOpacity(0);
+          e.defaultPrevented = false;
+          win.destroy();
+          globalShortcut.unregisterAll();
+          global.sharedObject.independentWindow = new Map();
+          app.quit();
+        });
+      } else {
+        console.log("ooooo");
+        win.on("close", () => {
+          global.sharedObject.independentWindow.delete(options.id || win.id);
+          delete this.winLs[win.id];
+          console.log("BrowserWindow win close ", win.id);
+          globalShortcut.unregisterAll();
+          this.registerShortcut();
+          win.setOpacity(0);
+  
+          setTimeout(() => {
+            if (!win.isDestroyed() && win) {
+              win.destroy();
+            }
+          }, 100);
+        });
+      }
+      win.webContents.on("did-finish-load", () => {
+        // win.webContents.send('win-loaded', '加载完成~！')
+        win.webContents.send("win-loaded", args);
+  
+        win.webContents.on(
+          "new-window",
+          (event, url, frameName, disposition, options, additionalFeatures) => {
+            console.log(
+              "router-link action ",
+              url.substring(url.indexOf("#") + 1)
+            );
+            event.preventDefault();
+            let isMultiWin = false;
+            if (
+              url &&
+              (url.substring(url.indexOf("#") + 1) === "/fourscreen" ||
+                url.substring(url.indexOf("#") + 1) === "/simulation/fourScreen")
+            ) {
+              isMultiWin = true;
+            }
+            this.createWin({
+              route: url.substring(url.indexOf("#") + 1),
+              isMultiWin: isMultiWin,
+              webPreferences: {
+                session: win.webContents.session
+              }
+            });
+          }
+        );
+      });
+  
+      win.on("focus", () => {
+        win.webContents.send("window-focused");
+      });
+      win.on("blur", () => {
+        win.webContents.send("window-blurred");
+      });
+      win.on('maximize', () => {
+        win.webContents.send('window-maximized');
+      });
+      this.registerShortcut();
+      //remote.enable(win.webContents);
 
     }
   
-
+  registerShortcut() {
+    var count = 2;
+    for (const key in this.winLs) {
+      if (
+        this.winLs.hasOwnProperty(key) &&
+        this.winLs[key].route.includes(klinevertical)
+      ) {
+        count = count + 1;
+        globalShortcut.register("F" + count, () => {
+          BrowserWindow.fromId(Number(key)).focus();
+        });
+      }
+    }
+    globalShortcut.register('CommandOrControl+Shift+i', function () {
+      win.webContents.openDevTools()
+  })
+    globalShortcut.register("CommandOrControl+Alt+O", () => {
+      this.focusAllWin();
+    });
+    return "F" + count;
+  }
   
     // 获取窗口
     getWin(id) {

@@ -6,16 +6,22 @@
 // app.use(router);                 // 使用路由登录
 // app.use(store);                  // 使用状态管理
 // app.mount('#app');               // 挂载应用到 #app 元素上
+// 引入路由配置
+import router from './router'; // 引入路由实例
 import { createApp } from 'vue'
 import App from './App.vue'
 import md5 from "js-md5";
-
-
+// 引入 Element Plus
+import ElementPlus from 'element-plus';
+import 'element-plus/dist/index.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 // Vue.prototype.$md5 = md5;
 
 // 创建 Vue 应用实例
 const app = createApp(App)
 console.log(window);
+app.use(ElementPlus);
+app.use(router);
 
 console.log("window"+window);
 // 设置全局属性

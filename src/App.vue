@@ -1,23 +1,18 @@
-<template>
-  <div id="app">
-    <Login />
-  </div>
-
-  <!-- <div id="app">
-    <h1>测试 Login.vue 组件</h1>
-  </div> -->
-</template>
-
 <script>
 import Login from "./views/Login.vue";
-
 export default {
   name: "App",
   components: {
-    Login,
+    Login, // 注册 Login 组件
   },
 };
 </script>
+
+<template>
+  <div id="app">
+    <router-view></router-view>
+  </div>
+</template>
 
 <style>
 /* 全局样式 */

@@ -1,8 +1,38 @@
 <template>
+  <!-- <div>
+    <h2>nihao</h2>
+    <el-button type="primary" @click="handleClick">点击我</el-button>
+    <el-input v-model="inputValue" placeholder="请输入内容"></el-input>
+    <p>输入的内容是：{{ inputValue }}</p>
+  </div> -->
   <div class="app">
     <div class="login-container">
       <div class="login-header">登录</div>
-      <form ref="ruleForm" @submit.prevent="submitForm('ruleForm')">
+      <el-form
+        ref="ruleForm"
+        size="medium"
+        @submit.prevent="submitForm('ruleForm')"
+      >
+        <el-form-item label="用户名:" prop="username">
+          <el-input
+            v-model="ruleForm.username"
+            placeholder="请输入用户名"
+            @keyup.enter="submitForm('ruleForm')"
+          />
+        </el-form-item>
+
+        <el-form-item label="密码:" prop="password">
+          <el-input
+            type="password"
+            placeholder="请输入密码"
+            @keyup.enter="submitForm('ruleForm')"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" native-type="submit">登录</el-button>
+        </el-form-item>
+      </el-form>
+      <!-- <form ref="ruleForm" @submit.prevent="submitForm('ruleForm')">
         <input
           type="text"
           v-model="username"
@@ -20,16 +50,14 @@
         <div>
           <button class="btn">登录</button>
         </div>
-
-        <!-- <div>
-          <button @click="myCount">Add 2</button>
-          <p>Count is: {{ count }}</p>
-        </div> -->
-      </form>
+      </form> -->
 
       <!-- <div>
         <button @click="test">测试</button>
       </div> -->
+      <div>
+        <router-link :to="{ name: 'MainView' }">跳转到主页面</router-link>
+      </div>
       <div class="forgot-password">
         <a href="#">忘记密码?</a>
       </div>
@@ -41,15 +69,25 @@
 import { ref, onMounted, onUnmounted, inject } from "vue"; // 引入 ref 和 onMounted
 import { debounce } from "@/utils/debounce"; // 引入 debounce 函数
 import md5 from "js-md5";
+import { useRouter } from "vue-router";
 // 定义响应式数据
 const username = ref("liuxinwei");
 const password = ref("");
 const count = ref(0);
 const $md5 = inject("$md5");
+const router = useRouter(); // 获取路由实例
+let isElectron = false;
+// 定义响应式数据
+const ruleForm = ref({
+  username: "liuxinwei2test",
+  password: "",
+});
+
 // onMounted 生命周期钩子
 onMounted(() => {
   // 你的原始代码逻辑
   console.log("Login---onMounted生命周期钩子被调用");
+  isElectron = window.v1.isElectron();
   // 如果你使用的是 Electron, 可按需进行操作
 });
 
@@ -76,8 +114,8 @@ const test = () => {
 // 提交表单的方法
 const submitForm = function (formName) {
   console.log("点击登录键！");
-  const { mac } = window.electronApi
-    ? window.electronApi.getNetwork()
+  const { mac } = window.v1
+    ? window.v1.getNetwork()
     : { mac: "cc:5e:f8:f0:5f:85" };
   console.log("mac地址是:", mac);
   console.log(`11112222`);
@@ -87,6 +125,56 @@ const submitForm = function (formName) {
   console.log(`formName:${formName}`);
   // var hwinfo = $md5(mac.replace(/:/g, ""));
   // console.log(`hwinfo是:${mac}`);
+  // 跳转到 MainView 组件
+  console.log(router);
+  let $path = "/MainView";
+  if (isElectron) {
+    let $path = "/MainView";
+    const args = {
+      id: "main",
+      width: 1024, // 窗口宽度
+      height: 968, // 窗口高度
+      isMainWin: true,
+      resize: true, // 是否支持缩放
+      maximize: false, // 最大化窗口
+      isMultiWin: true, // 是否支持多开窗口
+      route: $path,
+      frame: true,
+    };
+    console.log("LoginArgs");
+
+    console.log(args);
+    window.v1.sendMessageToMain("createWin", args);
+    return;
+    window.v1
+      .sendMessageToMain("createWin", args)
+      .then((response) => {
+        window.v1.close();
+      })
+      .catch((error) => {
+        // 处理错误
+        console.error(error);
+      });
+
+    window.v1
+      .sendMessageToMain("createWin", args)
+      .then((response) => {
+        window.v1.close();
+      })
+      .catch((error) => {
+        // 处理错误
+        console.error(error);
+      });
+  } else {
+    console.log("vue下跳转");
+    console.log($path);
+    //this.$router.push({ name: "MainView" });
+    //this.$router.push({ name: "MainView" });
+    this.$router.push({ path: $path });
+  }
+
+  //this.$router.push({ name: "MainView" }); // 这里使用了路由名称（假设你的路由配置了 name: 'Home'）
+  return;
   this.$refs[formName].validate((valid) => {
     if (valid) {
       api
