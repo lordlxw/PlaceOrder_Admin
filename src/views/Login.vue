@@ -1,11 +1,58 @@
 <template>
-  <!-- <div>
-    <h2>nihao</h2>
-    <el-button type="primary" @click="handleClick">点击我</el-button>
-    <el-input v-model="inputValue" placeholder="请输入内容"></el-input>
-    <p>输入的内容是：{{ inputValue }}</p>
-  </div> -->
+  <!-- 登录表单容器 -->
   <div class="app">
+    <div class="login-container">
+      <div class="login-header">登录</div>
+      <!-- 登录表单 -->
+      <form @submit.prevent="submitForm('ruleForm')">
+        <!-- 用户名输入框 -->
+        <div class="mb-3">
+          <label for="username" class="form-label">用户名</label>
+          <input
+            type="text"
+            class="form-control"
+            id="username"
+            v-model="ruleForm.username"
+            placeholder="请输入用户名"
+            @keyup.enter="submitForm('ruleForm')"
+            required
+          />
+        </div>
+
+        <!-- 密码输入框 -->
+        <div class="mb-3">
+          <label for="password" class="form-label">密码</label>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            v-model="ruleForm.password"
+            placeholder="请输入密码"
+            @keyup.enter="submitForm('ruleForm')"
+            required
+          />
+        </div>
+
+        <!-- 登录按钮 -->
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-primary">登录</button>
+        </div>
+      </form>
+
+      <!-- 跳转到主页面 -->
+      <div class="text-center mt-3">
+        <router-link to="{ name: 'MainView' }" class="text-decoration-none"
+          >跳转到主页面</router-link
+        >
+      </div>
+
+      <!-- 忘记密码链接 -->
+      <div class="forgot-password">
+        <a href="#">忘记密码?</a>
+      </div>
+    </div>
+  </div>
+  <!-- <div class="app">
     <div class="login-container">
       <div class="login-header">登录</div>
       <el-form
@@ -20,7 +67,6 @@
             @keyup.enter="submitForm('ruleForm')"
           />
         </el-form-item>
-
         <el-form-item label="密码:" prop="password">
           <el-input
             type="password"
@@ -32,29 +78,6 @@
           <el-button type="primary" native-type="submit">登录</el-button>
         </el-form-item>
       </el-form>
-      <!-- <form ref="ruleForm" @submit.prevent="submitForm('ruleForm')">
-        <input
-          type="text"
-          v-model="username"
-          class="input-field"
-          placeholder="请输入用户名"
-          @keyup.enter="submitForm('ruleForm')"
-        />
-        <input
-          type="password"
-          v-model="password"
-          class="input-field"
-          placeholder="请输入密码"
-          @keyup.enter="submitForm('ruleForm')"
-        />
-        <div>
-          <button class="btn">登录</button>
-        </div>
-      </form> -->
-
-      <!-- <div>
-        <button @click="test">测试</button>
-      </div> -->
       <div>
         <router-link :to="{ name: 'MainView' }">跳转到主页面</router-link>
       </div>
@@ -62,7 +85,7 @@
         <a href="#">忘记密码?</a>
       </div>
     </div>
-  </div>
+  </div> -->
 </template>
 
 <script setup>
@@ -77,6 +100,7 @@ const count = ref(0);
 const $md5 = inject("$md5");
 const router = useRouter(); // 获取路由实例
 let isElectron = false;
+const input = ref(""); // 使用 ref 来定义响应式数据
 // 定义响应式数据
 const ruleForm = ref({
   username: "liuxinwei2test",
@@ -87,7 +111,19 @@ const ruleForm = ref({
 onMounted(() => {
   // 你的原始代码逻辑
   console.log("Login---onMounted生命周期钩子被调用");
-  isElectron = window.v1.isElectron();
+  // 判断是否是 Electron 环境
+  if (
+    typeof window !== "undefined" &&
+    window.v1 &&
+    typeof window.v1.isElectron === "function"
+  ) {
+    // 在 Electron 环境中调用 isElectron
+    isElectron = window.v1.isElectron();
+    console.log("Electron environment detected:", isElectron);
+    console.log(isElectron);
+  } else {
+    console.log("Not in Electron environment.");
+  }
   // 如果你使用的是 Electron, 可按需进行操作
 });
 
@@ -128,12 +164,16 @@ const submitForm = function (formName) {
   // 跳转到 MainView 组件
   console.log(router);
   let $path = "/MainView";
+  console.log("isElectron");
+
+  console.log(isElectron);
+
   if (isElectron) {
     let $path = "/MainView";
     const args = {
       id: "main",
-      width: 1024, // 窗口宽度
-      height: 968, // 窗口高度
+      width: 1620, // 窗口宽度
+      height: 1024, // 窗口高度
       isMainWin: true,
       resize: true, // 是否支持缩放
       maximize: false, // 最大化窗口
@@ -170,7 +210,9 @@ const submitForm = function (formName) {
     console.log($path);
     //this.$router.push({ name: "MainView" });
     //this.$router.push({ name: "MainView" });
-    this.$router.push({ path: $path });
+    //this.$router.push({ path: $path });
+    console.log(this);
+    router.push({ name: "MainView" });
   }
 
   //this.$router.push({ name: "MainView" }); // 这里使用了路由名称（假设你的路由配置了 name: 'Home'）

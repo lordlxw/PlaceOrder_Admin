@@ -15,6 +15,8 @@ import md5 from "js-md5";
 import ElementPlus from 'element-plus';
 import 'element-plus/dist/index.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
 // Vue.prototype.$md5 = md5;
 
 // 创建 Vue 应用实例

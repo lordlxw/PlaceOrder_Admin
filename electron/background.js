@@ -19,6 +19,8 @@ const {
     ? "http://localhost:8080"
     : join(process.env.ROOT, "/dist/index.html");
   const klinevertical = "/simulation/klinevertical";
+
+  let loginWindow=null;
   // 配置参数
   const defaultConfig = {
     id: null, // 窗口唯一id
@@ -86,7 +88,7 @@ const {
     // 创建新窗口
     createWin(options) {
       console.log(options);
-      console.log('options222');
+      console.log('create new window');
       const args = Object.assign({}, defaultConfig, options);
       console.log("options: " + JSON.stringify(args, null, 2));
 
@@ -155,6 +157,13 @@ const {
       win.once("ready-to-show", () => {
         win.show();  // 只有在窗口准备好显示时才会显示窗口
       });
+      if(args.route=="/login")
+{
+  loginWindow=win;
+}
+      console.log("window - - id");
+      console.log(win.id);
+      console.log(this.winLs);
       this.winLs[win.id] = {
         route: args.route,
         isMultiWin: args.isMultiWin,
@@ -162,10 +171,16 @@ const {
         ...options
       };
       console.log("mmmmm");
-      return;
+
+
       // args.id = win.id;
       // console.log("current win ", this.winLs[options.id || win.id]);
       if (args.isMainWin) {
+        if(loginWindow)
+        {
+          loginWindow.close();  // 关闭登录窗口
+        loginWindow = null;   // 清空登录窗口实例
+        }
       console.log("nnnnn");
         win.on("close", e => {
           this.winLs = {};
@@ -178,7 +193,7 @@ const {
           app.quit();
         });
       } else {
-        console.log("ooooo");
+        console.log("不是主窗口");
         win.on("close", () => {
           global.sharedObject.independentWindow.delete(options.id || win.id);
           delete this.winLs[win.id];
@@ -252,9 +267,9 @@ const {
         });
       }
     }
-    globalShortcut.register('CommandOrControl+Shift+i', function () {
-      win.webContents.openDevTools()
-  })
+  //   globalShortcut.register('CommandOrControl+Shift+i', function () {
+  //     win.webContents.openDevTools()
+  // })
     globalShortcut.register("CommandOrControl+Alt+O", () => {
       this.focusAllWin();
     });
