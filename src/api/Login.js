@@ -1,12 +1,18 @@
 import request from "@/utils/request";
-import Vue from "vue";
+import { createApp } from 'vue';
+
 
 export default {
     // 登录
     login(params, agent, client) {
         console.log("调用login"+params+agent+client);
+
+        console.log('API URL:', import.meta.env.VITE_BASE_API); // 输出 BASE_API
+        console.log('WebSocket URL:', import.meta.env.VITE_WS_URL); // 输出 WS_URL
+        console.log('Project Name:', import.meta.env.VITE_PROJECT_NAME); // 输出 PROJECT_NAME
+        console.log('App Title:', import.meta.env.VITE_APP_TITLE); // 输出 APP_TITLE
       return request({
-        url: `${Vue.prototype.$apiUrl}/login`,
+        url: `${import.meta.env.VITE_BASE_API}/login`,
         method: "post",
         data: {
           username: params.username,
@@ -57,6 +63,7 @@ export default {
       })
     },
     chatReceiver() {
+      console.log("chatReceiver被调用！！！")
       return request({
         url: `${Vue.prototype.$apiUrl}/chatReceiver`,
         method: 'get'

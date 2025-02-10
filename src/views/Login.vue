@@ -86,6 +86,35 @@
       </div>
     </div>
   </div> -->
+
+  <nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">菜鸟教程</a>
+      </div>
+      <div>
+        <ul class="nav navbar-nav">
+          <li class="active"><a href="#">iOS</a></li>
+          <li><a href="#">SVN</a></li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+              Java
+              <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu">
+              <li><a href="#">jmeter</a></li>
+              <li><a href="#">EJB</a></li>
+              <li><a href="#">Jasper Report</a></li>
+              <li class="divider"></li>
+              <li><a href="#">分离的链接</a></li>
+              <li class="divider"></li>
+              <li><a href="#">另一个分离的链接</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
 </template>
 
 <script setup>
@@ -93,6 +122,8 @@ import { ref, onMounted, onUnmounted, inject } from "vue"; // 引入 ref 和 onM
 import { debounce } from "@/utils/debounce"; // 引入 debounce 函数
 import md5 from "js-md5";
 import { useRouter } from "vue-router";
+import api from "@/api/Login";
+import { ElMessage } from "element-plus";
 // 定义响应式数据
 const username = ref("liuxinwei");
 const password = ref("");
@@ -102,10 +133,15 @@ const router = useRouter(); // 获取路由实例
 let isElectron = false;
 const input = ref(""); // 使用 ref 来定义响应式数据
 // 定义响应式数据
-const ruleForm = ref({
+let ruleForm = ref({
   username: "liuxinwei2test",
   password: "",
 });
+
+const testValue = {
+  name: "111",
+  age: 12,
+};
 
 // onMounted 生命周期钩子
 onMounted(() => {
@@ -156,8 +192,8 @@ const submitForm = function (formName) {
   console.log("mac地址是:", mac);
   console.log(`11112222`);
   let testVal = "11111";
-  var hwinfo2 = md5(testVal);
-  console.log(`hwinfo2:${hwinfo2}`);
+  var hwinfo = md5(testVal);
+  console.log(`hwinfo2:${hwinfo}`);
   console.log(`formName:${formName}`);
   // var hwinfo = $md5(mac.replace(/:/g, ""));
   // console.log(`hwinfo是:${mac}`);
@@ -165,207 +201,91 @@ const submitForm = function (formName) {
   console.log(router);
   let $path = "/MainView";
   console.log("isElectron");
-
+  console.log("ruleForm", ruleForm.value); // 直接访问ruleForm的值
   console.log(isElectron);
+  console.log("ruleform");
+  console.log(ruleForm.value);
 
-  if (isElectron) {
-    let $path = "/MainView";
-    const args = {
-      id: "main",
-      width: 1620, // 窗口宽度
-      height: 1024, // 窗口高度
-      isMainWin: true,
-      resize: true, // 是否支持缩放
-      maximize: false, // 最大化窗口
-      isMultiWin: true, // 是否支持多开窗口
-      route: $path,
-      frame: true,
-    };
-    console.log("LoginArgs");
+  api
+    .login({
+      username: ruleForm.value.username,
+      password: ruleForm.value.password,
+      hwinfo: hwinfo,
+    })
+    .then((response) => {
+      //拿到登录成功返回的响应处理
+      console.log(response);
 
-    console.log(args);
-    window.v1.sendMessageToMain("createWin", args);
-    return;
-    window.v1
-      .sendMessageToMain("createWin", args)
-      .then((response) => {
-        window.v1.close();
-      })
-      .catch((error) => {
-        // 处理错误
-        console.error(error);
-      });
-
-    window.v1
-      .sendMessageToMain("createWin", args)
-      .then((response) => {
-        window.v1.close();
-      })
-      .catch((error) => {
-        // 处理错误
-        console.error(error);
-      });
-  } else {
-    console.log("vue下跳转");
-    console.log($path);
-    //this.$router.push({ name: "MainView" });
-    //this.$router.push({ name: "MainView" });
-    //this.$router.push({ path: $path });
-    console.log(this);
-    router.push({ name: "MainView" });
-  }
-
-  //this.$router.push({ name: "MainView" }); // 这里使用了路由名称（假设你的路由配置了 name: 'Home'）
-  return;
-  this.$refs[formName].validate((valid) => {
-    if (valid) {
-      api
-        .login(
-          {
-            username: this.ruleForm.username,
-            password: this.ruleForm.password,
-            uuid: this.uuid,
-            code: this.ruleForm.code,
-            hwinfo: hwinfo,
-          },
-          this.labelPosition === "Simulation" ? "BondHelper" : "BondHelper",
-          this.labelPosition === "Simulation" ? "sim" : "admin"
-        )
-        .then((response) => {
-          if (response && response.code === 200) {
-            // 保存 token 信息
-            Promise.all([this.$store.commit("SET_TOKEN", response.token)]).then(
-              () => {
-                api.auth().then(async (response) => {
-                  if (response && response.code === 200) {
-                    const { value: brokers } = await api.chatReceiver();
-                    this.$store.commit("SET_USER_INFO", {
-                      permissions: response.permissions,
-                      userName: response.user.userName,
-                      userId: response.user.userId,
-                      roleName: response.user.roles[0].roleName,
-                      menutree: response.menutree,
-                      brokers: brokers,
-                      ...response.user,
-                    });
-                  }
-                  let $path = "/simulation/main";
-                  if (this.labelPosition === "lily") {
-                    $path = "/dashboard";
-                  }
-
-                  if (this.isElectron) {
-                    const displays = await window.v1.getAllDisplays();
-                    this.$store.commit("SET_WIN_INFO", {
-                      displays,
-                    });
-                    if (this.labelPosition === "lily") {
-                      const maxWidth = Math.max(
-                        ...displays.map((display) => display.bounds.width)
-                      );
-                      const minWidth = Math.ceil(maxWidth * 0.7);
-                      const minHeight = Math.ceil(minWidth * 0.6);
-                      const args = {
-                        id: "main",
-                        width: minWidth, // 窗口宽度
-                        height: minHeight, // 窗口高度
-                        isMainWin: true,
-                        resize: true, // 是否支持缩放
-                        maximize: false, // 最大化窗口
-                        isMultiWin: true, // 是否支持多开窗口
-                        route: $path,
-                      };
-
-                      console.log(args);
-                      window.v1
-                        .createWin(args)
-                        .then((response) => {
-                          window.v1.close();
-                        })
-                        .catch((error) => {
-                          // 处理错误
-                          console.error(error);
-                        });
-                    } else {
-                      const { code, value, message } = await api.getProfile(
-                        response.user.userId
-                      );
-                      if (code !== "00000") {
-                        return this.$message({
-                          message: `${message}`,
-                          type: "error",
-                        });
-                      }
-                      const klineWins =
-                        value && value.wins ? JSON.parse(value.wins) : [];
-                      if (
-                        klineWins.length > 0 &&
-                        this.labelPosition !== "lily"
-                      ) {
-                        klineWins.forEach((args, index) => {
-                          window.v1
-                            .createWin(args)
-                            .then((response) => {
-                              console.log("args: ", response, args);
-                            })
-                            .catch((error) => {
-                              // 处理错误
-                              console.error(error);
-                            });
-                        });
-                        window.v1.close();
-                      } else {
-                        const maxWidth = Math.max(
-                          ...displays.map((display) => display.bounds.width)
-                        );
-                        const minWidth = Math.ceil(maxWidth / 2 + 100);
-                        const minHeight = Math.ceil(minWidth * 0.63);
-
-                        // const maxWidth = Math.max(...displays.map(display => display.bounds.width));
-                        // const minWidth = Math.ceil(maxWidth * 0.7);
-                        // const minHeight = Math.ceil(minWidth * 0.6);
-                        const args = {
-                          width: minWidth, // 窗口宽度
-                          height: minHeight, // 窗口高度
-                          minWidth: minWidth, // 窗口最小宽度
-                          maxWidth: minWidth,
-                          isMainWin: true,
-                          resize: true, // 是否支持缩放
-                          maximize: false, // 最大化窗口
-                          isMultiWin: true, // 是否支持多开窗口
-                          route: $path,
-                        };
-
-                        console.log(args);
-                        window.v1
-                          .createWin(args)
-                          .then((response) => {
-                            window.v1.close();
-                          })
-                          .catch((error) => {
-                            // 处理错误
-                            console.error(error);
-                          });
-                      }
-                    }
-                  } else {
-                    this.$router.push({ path: $path });
-                  }
+      if (response && response.code === 200) {
+        // 保存token信息
+        Promise.all([this.$store.commit("SET_TOKEN", response.token)]).then(
+          () => {
+            console.log("xxxxx!!!!!");
+            console.log(`${Vue.prototype.$apiUrl}`);
+            api.auth().then(async (response) => {
+              if (response && response.code === 200) {
+                const { value: brokers } = await api.chatReceiver();
+                this.$store.commit("SET_USER_INFO", {
+                  permissions: response.permissions,
+                  userName: response.user.userName,
+                  userId: response.user.userId,
+                  roleName: response.user.roles[0].roleName,
+                  menutree: response.menutree,
+                  brokers: brokers,
+                  ...response.user,
                 });
               }
-            );
-          } else {
-            this.$message({
-              message: `${response.message}`,
-              type: "error",
+              let $path = "/simulation/main";
+              console.log("labelPosition");
+              console.log(labelPosition.value);
+              if (this.labelPosition === "lily") {
+                $path = "/dashboard";
+              }
+              if (isElectron) {
+                let $path = "/MainView";
+                const args = {
+                  id: "main",
+                  width: 1620, // 窗口宽度
+                  height: 1024, // 窗口高度
+                  isMainWin: true,
+                  resize: true, // 是否支持缩放
+                  maximize: false, // 最大化窗口
+                  isMultiWin: true, // 是否支持多开窗口
+                  route: $path,
+                  frame: true,
+                };
+                console.log("LoginArgs");
+
+                console.log(args);
+                window.v1.sendMessageToMain("createWin", args);
+              } else {
+                console.log("vue下跳转");
+                console.log($path);
+                //this.$router.push({ name: "MainView" });
+                //this.$router.push({ name: "MainView" });
+                //this.$router.push({ path: $path });
+                console.log(this);
+                router.push({ name: "MainView" });
+              }
             });
           }
+        );
+      } else {
+        console.log("登录没有返回200");
+        ElMessage({
+          message: `${response.message}`,
+          type: "error", // 错误类型
         });
-    } else {
-      this.$message.error("验证失败");
-    }
-  });
+        // ElMessage("This is a message.");
+        // this.$message({
+        //   message: `${response.message}`,
+        //   type: "error",
+        // });
+        return;
+      }
+    });
 };
+//this.$router.push({ name: "MainView" }); // 这里使用了路由名称（假设你的路由配置了 name: 'Home'）
 </script>
 
 <style scoped>

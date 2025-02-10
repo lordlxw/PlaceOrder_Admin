@@ -1,5 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
-import MainView from '../views/MainView.vue';
+import MainView from '../layout/MainView.vue';
 import LoginView from '../views/Login.vue';
 
 // 创建路由实例
