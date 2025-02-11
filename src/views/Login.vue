@@ -124,18 +124,24 @@ import md5 from "js-md5";
 import { useRouter } from "vue-router";
 import api from "@/api/Login";
 import { ElMessage } from "element-plus";
+import { useStore } from "vuex";
+
+// import configUtil from "@/utils/config.js";
+// import * as util from "@/utils/util";
 // 定义响应式数据
 const username = ref("liuxinwei");
 const password = ref("");
+const labelPosition = ref("管理");
 const count = ref(0);
 const $md5 = inject("$md5");
+const store = useStore(); // 获取 Vuex store 实例
 const router = useRouter(); // 获取路由实例
 let isElectron = false;
 const input = ref(""); // 使用 ref 来定义响应式数据
 // 定义响应式数据
 let ruleForm = ref({
-  username: "liuxinwei2test",
-  password: "",
+  username: "admin",
+  password: "admin123",
 });
 
 const testValue = {
@@ -218,58 +224,56 @@ const submitForm = function (formName) {
 
       if (response && response.code === 200) {
         // 保存token信息
-        Promise.all([this.$store.commit("SET_TOKEN", response.token)]).then(
-          () => {
-            console.log("xxxxx!!!!!");
-            console.log(`${Vue.prototype.$apiUrl}`);
-            api.auth().then(async (response) => {
-              if (response && response.code === 200) {
-                const { value: brokers } = await api.chatReceiver();
-                this.$store.commit("SET_USER_INFO", {
-                  permissions: response.permissions,
-                  userName: response.user.userName,
-                  userId: response.user.userId,
-                  roleName: response.user.roles[0].roleName,
-                  menutree: response.menutree,
-                  brokers: brokers,
-                  ...response.user,
-                });
-              }
-              let $path = "/simulation/main";
-              console.log("labelPosition");
-              console.log(labelPosition.value);
-              if (this.labelPosition === "lily") {
-                $path = "/dashboard";
-              }
-              if (isElectron) {
-                let $path = "/MainView";
-                const args = {
-                  id: "main",
-                  width: 1620, // 窗口宽度
-                  height: 1024, // 窗口高度
-                  isMainWin: true,
-                  resize: true, // 是否支持缩放
-                  maximize: false, // 最大化窗口
-                  isMultiWin: true, // 是否支持多开窗口
-                  route: $path,
-                  frame: true,
-                };
-                console.log("LoginArgs");
+        Promise.all([store.commit("SET_TOKEN", response.token)]).then(() => {
+          console.log("xxxxx!!!!!");
+          //console.log(`${Vue.prototype.$apiUrl}`);
+          api.auth().then(async (response) => {
+            if (response && response.code === 200) {
+              const { value: brokers } = await api.chatReceiver();
+              store.commit("SET_USER_INFO", {
+                permissions: response.permissions,
+                userName: response.user.userName,
+                userId: response.user.userId,
+                roleName: response.user.roles[0].roleName,
+                menutree: response.menutree,
+                brokers: brokers,
+                ...response.user,
+              });
+            }
+            let $path = "/simulation/main";
+            console.log("labelPosition");
+            console.log(labelPosition.value);
+            if (labelPosition.value === "lily") {
+              $path = "/dashboard";
+            }
+            if (isElectron) {
+              let $path = "/MainView";
+              const args = {
+                id: "main",
+                width: 1620, // 窗口宽度
+                height: 1024, // 窗口高度
+                isMainWin: true,
+                resize: true, // 是否支持缩放
+                maximize: false, // 最大化窗口
+                isMultiWin: true, // 是否支持多开窗口
+                route: $path,
+                frame: true,
+              };
+              console.log("LoginArgs");
 
-                console.log(args);
-                window.v1.sendMessageToMain("createWin", args);
-              } else {
-                console.log("vue下跳转");
-                console.log($path);
-                //this.$router.push({ name: "MainView" });
-                //this.$router.push({ name: "MainView" });
-                //this.$router.push({ path: $path });
-                console.log(this);
-                router.push({ name: "MainView" });
-              }
-            });
-          }
-        );
+              console.log(args);
+              window.v1.sendMessageToMain("createWin", args);
+            } else {
+              console.log("vue下跳转");
+              console.log($path);
+              //this.$router.push({ name: "MainView" });
+              //this.$router.push({ name: "MainView" });
+              //this.$router.push({ path: $path });
+              console.log(this);
+              router.push({ name: "MainView" });
+            }
+          });
+        });
       } else {
         console.log("登录没有返回200");
         ElMessage({

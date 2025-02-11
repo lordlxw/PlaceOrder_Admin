@@ -30,20 +30,20 @@ export default {
     // 权限
     auth() {
       return request({
-        url: `${Vue.prototype.$apiUrl}/getUserInfo`,
+        url: `${import.meta.env.VITE_BASE_API}/getUserInfo`,
         method: "get"
       });
     },
     // 退出登录
     logout() {
       return request({
-        url: `${Vue.prototype.$apiUrl}/logout`,
+        url: `${import.meta.env.VITE_BASE_API}/logout`,
         method: "get"
       });
     },
     verifyToken(token) {
       return request({
-        url: `${Vue.prototype.$apiUrl}/api/verifyToken`,
+        url: `${import.meta.env.VITE_BASE_API}/api/verifyToken`,
         method: "post",
         data: {
           token: token
@@ -52,26 +52,26 @@ export default {
     },
     getProfile(userId) {
       return request({
-        url: `${Vue.prototype.$apiUrl}/userProfile/userId/${userId}`,
+        url: `${import.meta.env.VITE_BASE_API}/userProfile/userId/${userId}`,
         method: "get"
       });
     },
     brokerList() {
       return request({
-        url: `${Vue.prototype.$apiUrl}/broker`,
+        url: `${import.meta.env.VITE_BASE_API}/broker`,
         method: 'get'
       })
     },
     chatReceiver() {
       console.log("chatReceiver被调用！！！")
       return request({
-        url: `${Vue.prototype.$apiUrl}/chatReceiver`,
+        url: `${import.meta.env.VITE_BASE_API}/chatReceiver`,
         method: 'get'
       })
     },
     saveProfile(obj) {
       return request({
-        url: `${Vue.prototype.$apiUrl}/userProfile`,
+        url: `${import.meta.env.VITE_BASE_API}/userProfile`,
         method: "post",
         data: obj
       });

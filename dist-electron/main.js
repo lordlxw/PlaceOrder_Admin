@@ -1,4 +1,4 @@
-"use strict";
+// "use strict";
 const { app, BrowserWindow, ipcMain, globalShortcut } = require("electron");
 const { join } = require("path");
 require("glob");

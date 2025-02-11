@@ -30,7 +30,7 @@
           </div>
         </div>
         <!-- 主内容区域 -->
-        <div class="col-md-9 col-12 p-0">
+        <el-main>
           <div
             class="main-content"
             id="animateContent"
@@ -44,7 +44,7 @@
               </main-content>
             </div>
           </div>
-        </div>
+        </el-main>
       </div>
     </div>
   </div>

@@ -11,11 +11,13 @@ import router from './router'; // 引入路由实例
 import { createApp } from 'vue'
 import App from './App.vue'
 import md5 from "js-md5";
+import store from './store'; // 引入 Vuex store
 // 引入 Element Plus
 import ElementPlus from 'element-plus';
 import 'element-plus/dist/index.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import 'font-awesome/css/font-awesome.min.css'; // 引入fontawesome字体样式
 
 // Vue.prototype.$md5 = md5;
 
@@ -24,6 +26,7 @@ const app = createApp(App)
 console.log(window);
 app.use(ElementPlus);
 app.use(router);
+app.use(store)
 
 console.log("window"+window);
 // 设置全局属性
