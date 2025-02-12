@@ -56,15 +56,17 @@
 
 <script lang="ts" setup>
 import { ref, onBeforeMount } from "vue";
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import { Menu as IconMenu, Message, Setting } from "@element-plus/icons-vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useStore } from "vuex";
 import { onMounted } from "vue";
 import config from "../utils/config.js";
 const router = useRouter(); // 获取路由实例
+const route = useRoute(); // 获取路由实例
 const store = useStore(); // 获取 Vuex store 实例
 // 使用 computed 来映射 state 和 getters
+
 const curMenuIndex = computed(() => store.state.curMenuIndex);
 const routers = computed(() => store.getters.getRouters);
 const menus_ids = computed(() => store.getters.getMenus);
@@ -77,6 +79,18 @@ const menus = ref([]); // 使用 ref 来创建响应式数组
 const openeds = ref<string[]>([]); // 明确指定类型为 string 数组
 
 let test = ref([]);
+
+// 路由变化监听
+watch(route, (to, from) => {
+  console.log("watch变化");
+  if (routers[to.path]) {
+    navigateTo(
+      routers[to.path].navigator,
+      routers[to.path].navigatorId,
+      to.path
+    );
+  }
+});
 
 //赋值默认打开的子菜单
 onBeforeMount(() => {
@@ -111,11 +125,16 @@ const navigateTo = (val1, val2, val3) => {
   console.log(openeds.value);
   console.log(userInfo.value);
   console.log(openeds2.value);
+
+  console.log("routers");
+  console.log(routers.value);
+  console.log("endrouter");
   const params = {
     val1,
     val2,
     val3,
   };
+  router.push(val3);
   store.commit("SET_NAVIGATOR", params);
 };
 

@@ -220,6 +220,8 @@ const store = createStore({
       },
       // 设置导航
       SET_NAVIGATOR(state, params) {
+        console.log("调用SET_NAVIGATOR");
+        console.log(params)
         state.navigator = params.val1;
         state.navigatorId = params.val2;
         state.routers[params.val3] = {

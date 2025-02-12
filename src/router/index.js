@@ -4,6 +4,11 @@ import LoginView from '../views/Login.vue';
 import Test1 from '../components/VueComponent1.vue';
 import Test2 from '../components/VueComponent2.vue';
 
+import Enquiry from '../views/Trade/Enquiry.vue'; // 询价单
+import Bonds from '../views/Trade/Bonds.vue';  // 当前持仓单
+import Reward from '../views/Trade/Reward.vue';  // 成交回报
+import Break from '../views/Trade/Break.vue'; // 违约成交
+
 // 创建路由实例
 const router = createRouter({
   history: createWebHashHistory(),  // 使用 Hash 模式
@@ -27,6 +32,25 @@ const router = createRouter({
           path: 'Test2',  // 当访问 /Test2 时展示 Test2 组件
           component: Test2,
           name: 'Test2'
+        },// 交易管理 - 询价单
+        {
+          path: '/trade/enquiry',
+          component: Enquiry
+        },
+        // 交易管理 - 当前持仓单
+        {
+          path: '/trade/bonds',
+          component: Bonds
+        },
+        // 交易管理 - 成交回报
+        {
+          path: '/trade/reward',
+          component: Reward
+        },
+        // 交易管理 - 违约成交
+        {
+          path: '/trade/break',
+          component: Break
         }
       ]
     },
