@@ -270,7 +270,7 @@ const submitForm = function (formName) {
               //this.$router.push({ name: "MainView" });
               //this.$router.push({ path: $path });
               console.log(this);
-              router.push({ name: "MainView" });
+              router.push({ path: "/MainView" });
             }
           });
         });

@@ -1,6 +1,8 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import MainView from '../layout/MainView.vue';
 import LoginView from '../views/Login.vue';
+import Test1 from '../components/VueComponent1.vue';
+import Test2 from '../components/VueComponent2.vue';
 
 // 创建路由实例
 const router = createRouter({
@@ -14,7 +16,19 @@ const router = createRouter({
     {
       path: '/MainView',
       component: MainView,
-      name:'MainView'
+      name: 'MainView', 
+      children: [
+        {
+          path: 'Test1',  // 当访问 /Test1 时展示 Test1 组件
+          component: Test1,
+          name: 'Test1'
+        },
+        {
+          path: 'Test2',  // 当访问 /Test2 时展示 Test2 组件
+          component: Test2,
+          name: 'Test2'
+        }
+      ]
     },
     {
       path: '/login',
@@ -25,7 +39,8 @@ const router = createRouter({
       path: '/C:/Users/admin/Desktop/PlaceOrder_Admin/PlaceOrder_Admin/dist/index.html',
       component: LoginView,
       name:'LoginView3'
-    }
+    },
+    
   ]
 });
 
