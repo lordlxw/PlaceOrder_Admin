@@ -128,9 +128,12 @@ const store = createStore({
       },
       // 获取用户信息
       getUserInfo(state) {
+        console.log("调用vuex的getUserInfo")
         if (localStorage.getItem(config.keys.userInfo)) {
+          console.log("拿得到localStorage");
           state.userInfo = JSON.parse(localStorage.getItem(config.keys.userInfo));
         } else {
+          console.log("拿不到localStorage");
           state.userInfo = {
             // 权限
             permissions: [],

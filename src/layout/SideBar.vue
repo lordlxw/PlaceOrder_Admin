@@ -1,5 +1,5 @@
 <template>
-  <div style="width: 200px">
+  <div>
     <el-menu
       :default-active="$route.path"
       background-color="brown"
@@ -83,6 +83,12 @@ let test = ref([]);
 // 路由变化监听
 watch(route, (to, from) => {
   console.log("watch变化");
+
+  // 如果目标路由已经是当前路由，直接返回
+  if (to.path === from.path) {
+    return;
+  }
+
   if (routers[to.path]) {
     navigateTo(
       routers[to.path].navigator,
@@ -95,7 +101,7 @@ watch(route, (to, from) => {
 //赋值默认打开的子菜单
 onBeforeMount(() => {
   // 这里相当于 Vue 2 中的 created
-  console.log("组件创建前执行");
+  console.log("SideBar组件创建前执行");
 
   if (userInfo.value && userInfo.value.menutree) {
     openeds.value = userInfo.value.menutree.map((item, i) =>

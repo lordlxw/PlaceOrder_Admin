@@ -79,7 +79,16 @@ router.beforeEach((to, from, next) => {
   console.log(`跳转时间: ${timestamp}`);
   
   // 调用 next() 来继续执行路由导航
-  next();
+   // 判断目标路径是否存在
+   const isValidRoute = router.getRoutes().some(route => route.path === to.path);
+
+   // 如果目标路由不存在，则重定向到 MainView
+   if (!isValidRoute) {
+     console.log(`路由 ${to.path} 不存在，重定向到 MainView`);
+     next('/MainView');  // 重定向到 MainView 路径
+   } else {
+     next();  // 如果路由存在，正常导航
+   }
 });
 
 export default router;

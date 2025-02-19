@@ -140,8 +140,8 @@ let isElectron = false;
 const input = ref(""); // 使用 ref 来定义响应式数据
 // 定义响应式数据
 let ruleForm = ref({
-  username: "admin",
-  password: "admin123",
+  username: "shenhe1",
+  password: "shenhe1",
 });
 
 const testValue = {
@@ -226,7 +226,7 @@ const submitForm = function (formName) {
         // 保存token信息
         Promise.all([store.commit("SET_TOKEN", response.token)]).then(() => {
           console.log("xxxxx!!!!!");
-          //console.log(`${Vue.prototype.$apiUrl}`);
+          //console.log(`${import.meta.env.VITE_BASE_API}`);
           api.auth().then(async (response) => {
             if (response && response.code === 200) {
               const { value: brokers } = await api.chatReceiver();
