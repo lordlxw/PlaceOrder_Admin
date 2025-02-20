@@ -3,7 +3,11 @@
   <div>
     hello
     <el-tabs>
-      <el-tab-pane label="未平仓"></el-tab-pane>
+      <el-tab-pane label="未平仓">
+        <div>
+          <el-button>测试</el-button>
+        </div>
+      </el-tab-pane>
 
       <el-tab-pane label="已平仓"></el-tab-pane>
     </el-tabs>

@@ -213,11 +213,15 @@ const submitForm = function (formName) {
   console.log(ruleForm.value);
 
   api
-    .login({
-      username: ruleForm.value.username,
-      password: ruleForm.value.password,
-      hwinfo: hwinfo,
-    })
+    .login(
+      {
+        username: ruleForm.value.username,
+        password: ruleForm.value.password,
+        hwinfo: hwinfo,
+      },
+      this.labelPosition === "Simulation" ? "BondHelper" : "BondHelper",
+      this.labelPosition === "Simulation" ? "sim" : "admin"
+    )
     .then((response) => {
       //拿到登录成功返回的响应处理
       console.log(response);
