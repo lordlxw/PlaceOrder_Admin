@@ -340,7 +340,7 @@ const submitForm = function (formName) {
 
 .btn {
   width: 100%;
-  padding: 12px;
+  padding: 10px;
   background-color: #4caf50;
   border: none;
   border-radius: 8px;
