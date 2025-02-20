@@ -1,5 +1,6 @@
 <template lang="">
   <h1>这是主界面</h1>
+  <SocketElectron></SocketElectron>
   <!-- <button @click="goToTest1">切换1</button>
   <button @click="goToTest2">切换2</button> -->
   <!-- <div class="d-flex" id="app" style:width="300px">
@@ -45,6 +46,7 @@
 
 <script>
 import SideBar from "../layout/SideBar.vue";
+import SocketElectron from "../components/SocketElectron.vue";
 // 如果 Sidebar 在 layout 目录
 import { commMixin } from "../utils/commMixin";
 import { pageMixin } from "../utils/pageMixin";
@@ -54,6 +56,7 @@ export default {
   name: "Layout",
   components: {
     SideBar,
+    SocketElectron,
   },
   mixins: [pageMixin, commMixin],
   computed: {

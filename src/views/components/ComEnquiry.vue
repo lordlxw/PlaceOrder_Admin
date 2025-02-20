@@ -48,6 +48,20 @@
             >
             </el-table-column>
           </template>
+
+          <!-- 操作列 -->
+          <el-table-column
+            label="操作"
+            width="100"
+            fixed="right"
+            align="center"
+          >
+            <template v-slot="scope">
+              <el-button size="mini" @click="handleCopy(scope.row)" type="text"
+                >复制</el-button
+              >
+            </template>
+          </el-table-column>
         </el-table>
       </div>
     </div>
@@ -71,7 +85,7 @@ import config from "../../utils/config";
 import * as util from "../../utils/util";
 import { debounce } from "../../utils/debounce";
 import moment from "moment";
-
+import { ElMessage } from "element-plus";
 // 获取 Vuex store 实例
 const store = useStore();
 
@@ -109,6 +123,12 @@ const moneyTest = async (rule: any, value: string, callback: Function) => {
   } else {
     callback();
   }
+};
+
+const handleCopy = (row) => {
+  console.log("复制询价单");
+  console.log(row);
+  ElMessage("复制询价单" + JSON.stringify(row));
 };
 
 const plusAmountTest = async (rule: any, value: string, callback: Function) => {
