@@ -492,15 +492,15 @@ a:hover {
   display: none;
 }
 
-.el-table .el-table__body tr.gd-red-row.hover-row>td {
-  background-color: transparent !important
-}
+// .el-table .el-table__body tr.gd-red-row.hover-row>td {
+//   background-color: transparent !important
+// }
 
 
 
-.el-table__body .el-table__row.hover-row td {
-  background-color: unset !important
-}
+// .el-table__body .el-table__row.hover-row td {
+//   background-color: unset !important
+// }
 
 
 /* 合计行整体样式修改开始 */
@@ -766,18 +766,18 @@ a:hover {
   height: 100%;
 }
 
-// .btn-green,
-// .btn-active {
-//   background: #00da3c !important;
-//   color: white;
-//   border: 1px solid #00da3c;
-// }
+.btn-green,
+.btn-active {
+  background: #00da3c !important;
+  color: white;
+  border: 1px solid #00da3c;
+}
 
-// .btn-green:hover {
-//   background: rgb(8, 145, 8) !important;
-//   color: white;
-//   border: 1px solid #00da3c;
-// }
+.btn-green:hover {
+  background: rgb(8, 145, 8) !important;
+  color: white;
+  border: 1px solid #00da3c;
+}
 
 .el-tooltip__popper{
   max-width: 80vw;

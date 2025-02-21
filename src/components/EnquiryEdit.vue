@@ -76,12 +76,12 @@
         </el-button-group>
       </el-form-item> -->
       <el-form-item label="清算速度" prop="deliveryTime">
-        <delivery-canlendar
-          ref="buyDeliveryCanlendar"
+        <delivery-calendar
+          ref="buyDeliveryCalendar"
           :init="action === 2 ? true : false"
-          @change="handleBuyDeliveryCanlendar"
+          @change="handleBuyDeliveryCalendar"
           :disabled="action === 2 ? true : false"
-        ></delivery-canlendar>
+        ></delivery-calendar>
         <!-- <el-button-group>
           <el-button
             icon="el-icon-plus"
@@ -125,12 +125,12 @@ import apiAdmin from "@/api/Power_Admin";
 import * as util from "@/utils/util";
 import config from "@/utils/config";
 import { debounce } from "@/utils/debounce";
-import DeliveryCanlendar from "@/components/DeliveryCanlendar.vue";
+import DeliveryCalendar from "@/components/DeliveryCalendar.vue";
 export default {
   // action=1 添加，action=2 询价单编辑
   props: ["row", "action", "riskControlData"],
   components: {
-    DeliveryCanlendar,
+    DeliveryCalendar,
   },
   computed: {
     ...mapGetters({
@@ -258,7 +258,7 @@ export default {
       return "";
     },
     // 买单清算速度变化
-    handleBuyDeliveryCanlendar(obj) {
+    handleBuyDeliveryCalendar(obj) {
       this.enquiryForm.deliveryTime = obj.value;
     },
     // 点击交易速度
@@ -400,7 +400,7 @@ export default {
         ? obj.deliverySpeed
         : 0;
       this.enquiryForm.deliveryTime = obj.deliveryTime;
-      this.$refs.buyDeliveryCanlendar.deliveryTime = obj.deliveryTime;
+      this.$refs.buyDeliveryCalendar.deliveryTime = obj.deliveryTime;
       this.enquiryForm.tradeuserId = obj.userId;
       this.enquiryForm.remark = obj.remark;
       this.enquiryForm.lockDirection = obj.lockDirection;

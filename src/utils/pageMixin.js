@@ -20,12 +20,25 @@ export const pageMixin = {
     })
   },
   methods: {
+    // setAuth(permis) {
+    //   console.log("permis:",permis)
+    //   return (
+    //     this.userInfo &&
+    //     ((this.userInfo.permissions &&
+    //       this.userInfo.permissions[0] === "*:*:*") ||
+    //       this.userInfo.permissions.indexOf(permis) !== -1)
+    //   );
+    // },
+
     setAuth(permis) {
+      console.log("permis:", permis);
       return (
         this.userInfo &&
-        ((this.userInfo.permissions &&
-          this.userInfo.permissions[0] === "*:*:*") ||
-          this.userInfo.permissions.indexOf(permis) !== -1)
+        this.userInfo.permissions &&
+        (
+          this.userInfo.permissions[0] === "*:*:*" ||
+          this.userInfo.permissions.indexOf(permis) !== -1
+        )
       );
     },
     handleSelectionChange(val) {

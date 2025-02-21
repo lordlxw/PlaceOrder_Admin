@@ -58,12 +58,12 @@ import api from "@/api/Trade";
 import apiAdmin from "@/api/Power_Admin";
 import config from "@/utils/config";
 import { debounce } from "@/utils/debounce";
-import DeliveryCanlendar from "@/components/DeliveryCanlendar.vue";
+import DeliveryCalendar from "@/components/DeliveryCalendar.vue";
 import moment from "moment";
 export default {
   props: ["row"],
   components: {
-    DeliveryCanlendar,
+    DeliveryCalendar,
   },
   computed: {
     formattedDeliveryTime() {
@@ -109,7 +109,7 @@ export default {
       return "";
     },
     // 买单交割日期变化
-    handleBuyDeliveryCanlendar(obj) {
+    handleBuyDeliveryCalendar(obj) {
       this.enquiryForm.deliveryTime = obj.value;
     },
     // 点击交易速度

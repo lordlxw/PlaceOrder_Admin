@@ -131,7 +131,7 @@ import { useStore } from "vuex";
 // 定义响应式数据
 const username = ref("liuxinwei");
 const password = ref("");
-const labelPosition = ref("管理");
+let labelPosition = ref("管理");
 const count = ref(0);
 const $md5 = inject("$md5");
 const store = useStore(); // 获取 Vuex store 实例
@@ -211,7 +211,9 @@ const submitForm = function (formName) {
   console.log(isElectron);
   console.log("ruleform");
   console.log(ruleForm.value);
-
+  console.log("LabelPosition");
+  console.log(labelPosition);
+  console.log(labelPosition.value);
   api
     .login(
       {
@@ -219,8 +221,8 @@ const submitForm = function (formName) {
         password: ruleForm.value.password,
         hwinfo: hwinfo,
       },
-      this.labelPosition === "Simulation" ? "BondHelper" : "BondHelper",
-      this.labelPosition === "Simulation" ? "sim" : "admin"
+      labelPosition === "Simulation" ? "BondHelper" : "BondHelper",
+      labelPosition === "Simulation" ? "sim" : "admin"
     )
     .then((response) => {
       //拿到登录成功返回的响应处理

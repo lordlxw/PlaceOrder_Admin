@@ -74,7 +74,7 @@ import { useStore } from "vuex";
 import api from "../../api/Trade";
 import apiAdmin from "../../api/Power_Admin";
 import apiBreak from "../../api/Break";
-import DeliveryCanlendarUpdate from "../../components/DeliveryCanlendarUpdate.vue";
+import DeliveryCalendarUpdate from "../../components/DeliveryCalendarUpdate.vue";
 import RealEnquiryRoll from "../../components/RealEnquiryRoll.vue";
 import EnquiryEdit from "../../components/EnquiryEdit.vue";
 import EnquiryDifficult from "../../components/EnquiryDifficult.vue";

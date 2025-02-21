@@ -1,6 +1,7 @@
 // 交易管理
 import request from "@/utils/request";
 export default {
+  name:"apiTrade",
   /**
    * 新增询价单
    * @param {*} params

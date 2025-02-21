@@ -62,11 +62,11 @@
             </el-button-group>
           </el-form-item>
           <el-form-item label="交割日期" prop="deliveryTime">
-            <delivery-canlendar-update
-              ref="deliveryCanlendarUpdate"
+            <delivery-calendar-update
+              ref="deliveryCalendarUpdate"
               :dtime="overForm.dtime"
-              @change="handleDeliveryCanlendarUpdate"
-            ></delivery-canlendar-update>
+              @change="handleDeliveryCalendarUpdate"
+            ></delivery-calendar-update>
           </el-form-item>
           <el-form-item label="交易对手" prop="counterParty">
             <el-input
@@ -166,11 +166,11 @@
             </el-button-group>
           </el-form-item>
           <el-form-item label="交割日期" prop="deliveryTime">
-            <delivery-canlendar-update
-              ref="deliveryCanlendarUpdate2"
+            <delivery-calendar-update
+              ref="deliveryCalendarUpdate2"
               :dtime="openForm.dtime"
-              @change="handleDeliveryCanlendarUpdate2"
-            ></delivery-canlendar-update>
+              @change="handleDeliveryCalendarUpdate2"
+            ></delivery-calendar-update>
           </el-form-item>
           <el-form-item label="交易对手" prop="counterParty">
             <el-input
@@ -214,19 +214,19 @@
 </template>
 
 <script>
-import apiCanlendar from "@/api/Calendar";
+import apiCalendar from "@/api/Calendar";
 import api from "@/api/Trade";
 import config from "@/utils/config";
 import * as util from "@/utils/util";
 import { debounce } from "@/utils/debounce";
 import { pageMixin } from "@/utils/pageMixin";
 import moment from "moment";
-import DeliveryCanlendarUpdate from "@/components/DeliveryCanlendarUpdate.vue";
+import DeliveryCalendarUpdate from "@/components/DeliveryCalendarUpdate.vue";
 export default {
   mixins: [pageMixin],
   props: ["overRow", "openRow"],
   components: {
-    DeliveryCanlendarUpdate,
+    DeliveryCalendarUpdate,
   },
   data() {
     // 金额格式验证
@@ -361,11 +361,11 @@ export default {
       }
     },
     // 交割日期变化
-    handleDeliveryCanlendarUpdate(obj) {
+    handleDeliveryCalendarUpdate(obj) {
       this.overForm.deliveryTime = obj.value;
     },
     // 交割日期变化
-    handleDeliveryCanlendarUpdate2(obj) {
+    handleDeliveryCalendarUpdate2(obj) {
       this.openForm.deliveryTime = obj.value;
     },
     // 复制
@@ -439,7 +439,7 @@ export default {
         this.overForm.deliveryTime = moment(this.overRow.deliveryTime).format(
           "YYYY-MM-DD"
         );
-        this.overForm.dtime = this.$refs.deliveryCanlendarUpdate.deliveryTime =
+        this.overForm.dtime = this.$refs.deliveryCalendarUpdate.deliveryTime =
           moment(this.overRow.deliveryTime).format("YYYY-MM-DD");
       } else if (
         moment(this.overRow.deliveryTime).format("YYYY-MM-DD") ===
@@ -449,7 +449,7 @@ export default {
         )
       ) {
         this.overForm.deliveryTime = moment(new Date()).format("YYYY-MM-DD");
-        this.overForm.dtime = this.$refs.deliveryCanlendarUpdate.deliveryTime =
+        this.overForm.dtime = this.$refs.deliveryCalendarUpdate.deliveryTime =
           moment(new Date()).format("YYYY-MM-DD");
       } else {
         this.getNextDealDay();
@@ -473,7 +473,7 @@ export default {
         this.openForm.deliveryTime = moment(this.openRow.deliveryTime).format(
           "YYYY-MM-DD"
         );
-        this.openForm.dtime = this.$refs.deliveryCanlendarUpdate2.deliveryTime =
+        this.openForm.dtime = this.$refs.deliveryCalendarUpdate2.deliveryTime =
           moment(this.openRow.deliveryTime).format("YYYY-MM-DD");
       } else if (
         moment(this.openRow.deliveryTime).format("YYYY-MM-DD") ===
@@ -483,7 +483,7 @@ export default {
         )
       ) {
         this.openForm.deliveryTime = moment(new Date()).format("YYYY-MM-DD");
-        this.openForm.dtime = this.$refs.deliveryCanlendarUpdate2.deliveryTime =
+        this.openForm.dtime = this.$refs.deliveryCalendarUpdate2.deliveryTime =
           moment(new Date()).format("YYYY-MM-DD");
       } else {
         this.getNextDealDay();
@@ -496,14 +496,14 @@ export default {
     },
     // 获取下个交易日
     getNextDealDay() {
-      apiCanlendar.nextDealDay({}).then((response) => {
+      apiCalendar.nextDealDay({}).then((response) => {
         if (response && response.code === "00000") {
           this.overForm.deliveryTime = response.value;
           this.openForm.deliveryTime = response.value;
-          this.overForm.dtime =
-            this.$refs.deliveryCanlendarUpdate.deliveryTime = response.value;
+          this.overForm.dtime = this.$refs.deliveryCalendarUpdate.deliveryTime =
+            response.value;
           this.openForm.dtime =
-            this.$refs.deliveryCanlendarUpdate2.deliveryTime = response.value;
+            this.$refs.deliveryCalendarUpdate2.deliveryTime = response.value;
         }
       });
     },
