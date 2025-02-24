@@ -32,7 +32,7 @@ export const pageMixin = {
 
     setAuth(permis) {
       console.log("permis:", permis);
-      return (
+      const result = (
         this.userInfo &&
         this.userInfo.permissions &&
         (
@@ -40,6 +40,15 @@ export const pageMixin = {
           this.userInfo.permissions.indexOf(permis) !== -1
         )
       );
+       // 输出最终的返回值，true 或 false
+        // 如果权限是 'bonds:updateconfirm'，额外输出日志
+  if (permis === 'bonds:updateconfirm') {
+    console.log("Checking permission for 'bonds:updateconfirm'");
+    console.log("User permissions:", this.userInfo && this.userInfo.permissions);
+    console.log(`Permission check for '${permis}': ${result}`);
+  }
+
+  return result;
     },
     handleSelectionChange(val) {
       this.multipleSelection = val;

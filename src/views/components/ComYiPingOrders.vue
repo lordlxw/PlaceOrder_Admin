@@ -191,6 +191,7 @@
         highlight-current-row
         @selection-change="handleBondsSelectionChange"
         @sort-change="handleSortChangeBonds"
+        @row-click="handleRowClick"
       >
         <el-table-column
           v-if="setAuth('bonds:break')"
@@ -254,6 +255,15 @@
               placement="bottom-end"
               :ref="`popover-agreeupdatebonds-${scope.$index}`"
             >
+              <template v-slot:reference>
+                <el-button
+                  type="text"
+                  class="ml10"
+                  @click="handlViewBondsUpdateContent(scope)"
+                >
+                  修改审核
+                </el-button>
+              </template>
               <p>
                 确认要<span class="color-red">同意修改</span>“<span
                   class="color-main"
@@ -292,13 +302,8 @@
                   >拒绝</el-button
                 >
               </div>
-              <el-button
-                type="text"
-                class="ml10"
-                @click="handlViewBondsUpdateContent(scope)"
-                >修改审核</el-button
-              >
             </el-popover>
+
             <el-popover
               v-if="
                 setAuth('bonds:saybreak') &&
@@ -330,7 +335,9 @@
                   >确认</el-button
                 >
               </div>
-              <el-button type="text" class="ml10">口头违约</el-button>
+              <template v-slot:reference>
+                <el-button type="text" class="ml10"> 口头违约 </el-button>
+              </template>
             </el-popover>
             <el-popover
               v-if="
@@ -365,7 +372,9 @@
                   >确认</el-button
                 >
               </div>
-              <el-button type="text" class="ml10">确认口违</el-button>
+              <template v-slot:reference>
+                <el-button type="text" class="ml10"> 确认口违 </el-button>
+              </template>
             </el-popover>
             <el-popover
               v-if="
@@ -400,7 +409,10 @@
                   >确认</el-button
                 >
               </div>
-              <el-button type="text" class="ml10">拒绝口违</el-button>
+
+              <template v-slot:reference>
+                <el-button type="text" class="ml10"> 拒绝口违 </el-button>
+              </template>
             </el-popover>
           </template>
         </el-table-column>
@@ -646,6 +658,10 @@ export default {
     this.loadInitDataFinish();
   },
   methods: {
+    handleRowClick(row, column, event) {
+      console.log("已平Clicked row:", row);
+      // 在这里执行你的逻辑
+    },
     handleDoCheck(val) {
       this.errorMsg = "";
       if (val.length > 1) {
