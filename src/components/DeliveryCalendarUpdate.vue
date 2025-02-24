@@ -1,11 +1,11 @@
 <template>
   <el-date-picker
-    :value="deliveryTime"
+    v-model="deliveryTime"
     type="date"
     placeholder="选择日期"
     :clearable="false"
     :picker-options="pickerOptions"
-    @input="handleChange"
+    @change="handleChange"
     :editable="false"
     class="date-w"
   >
@@ -31,6 +31,12 @@ export default {
       deliveryTime: "",
       pickerOptions: {},
     };
+  },
+  watch: {
+    // 监听 deliveryTime 的变化
+    deliveryTime(newValue) {
+      this.handleChange(newValue); // 当 deliveryTime 变化时调用此方法
+    },
   },
   methods: {
     // 一月内节假日
@@ -83,6 +89,7 @@ export default {
     },
     // 改变日期
     handleChange(val) {
+      console.log("改变日期");
       this.deliveryTime = val;
       this.$emit("change", {
         value: val,

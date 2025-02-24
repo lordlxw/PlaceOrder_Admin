@@ -14,7 +14,7 @@ const router = useRouter();
 // 请求拦截器
 service.interceptors.request.use(
   (config) => {
-    console.log("请求拦截器");
+    console.log("请求拦截器",config);
 
     try {
       const token = localStorage.getItem(configUtil.keys.tokenKey);
@@ -40,7 +40,7 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   (response) => {
-    console.log("响应拦截器");
+    console.log("响应拦截器",response);
 
     const resp = response.data;
 

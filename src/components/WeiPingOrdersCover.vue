@@ -31,13 +31,6 @@
           class="slt-user"
         ></el-input-number>
       </el-form-item>
-      <!-- <el-form-item label="允许浮动" prop="worstPrice">
-        <el-input-number
-          v-model="coverForm.worstPrice"
-          step="0.05"
-        ></el-input-number>
-        BP
-      </el-form-item> -->
       <el-form-item label="交易量(万)" prop="volume">
         <el-input-number
           class="slt-user"
@@ -48,16 +41,6 @@
           step-strictly
         ></el-input-number>
       </el-form-item>
-      <!-- <el-form-item>
-        <el-button-group>
-          <el-button type="primary" @click="funcVolumeAdd(0)">清零</el-button>
-          <el-button type="primary" @click="funcVolumeAdd(1000)">1</el-button>
-          <el-button type="primary" @click="funcVolumeAdd(2000)">2</el-button>
-          <el-button type="primary" @click="funcVolumeAdd(3000)">3</el-button>
-          <el-button type="primary" @click="funcVolumeAdd(5000)">5</el-button>
-          <el-button type="primary" @click="funcVolumeAdd(10000)">10</el-button>
-        </el-button-group>
-      </el-form-item> -->
       <el-form-item label="中介" prop="brokerid">
         <el-select
           v-model="coverForm.brokerid"
@@ -82,32 +65,12 @@
         </el-select>
       </el-form-item>
       <el-form-item label="清算速度" prop="deliveryTime">
-        <delivery-calendar-update
+        <DeliveryCalendarUpdate
           ref="deliveryCalendarUpdate"
           :w="`200px`"
           @change="handleDeliveryCalendarUpdate"
-        ></delivery-calendar-update>
+        ></DeliveryCalendarUpdate>
       </el-form-item>
-      <!-- <el-form-item label="交易员" prop="tradeuserId">
-        <el-select v-model="coverForm.tradeuserId" placeholder="请选择交易员">
-          <el-option
-            v-for="item in tradeUsersOption"
-            :key="item.userId"
-            :label="item.userName"
-            :value="item.userId"
-          >
-          </el-option>
-        </el-select>
-      </el-form-item> -->
-      <!-- <el-form-item label="备注">
-        <el-input
-          type="textarea"
-          v-model="coverForm.remark"
-          placeholder="请输入内容"
-          resize="none"
-          rows="2"
-        ></el-input>
-      </el-form-item> -->
       <el-form-item label=" ">
         <el-button
           type="primary"
@@ -137,6 +100,7 @@ export default {
   components: {
     DeliveryCalendarUpdate,
   },
+
   data() {
     // 金额格式验证
     const moneyTest = async (rule, value, callback) => {
@@ -164,6 +128,7 @@ export default {
       }
     };
     return {
+      currentRow: {},
       tradeUsersOption: [],
       intendComerOption: [],
       coverForm: {
@@ -252,6 +217,7 @@ export default {
     },
     // 买单清算速度变化
     handleDeliveryCalendarUpdate(obj) {
+      console.log("买单清算速度变化");
       this.coverForm.deliveryTime = obj.value;
     },
     // 点击清算速度
@@ -385,7 +351,13 @@ export default {
     },
     // 加载初始值
     loadInitData() {
-      console.log(this.row.price);
+      console.log("未平弹窗1233", this.row);
+      console.log(this.row.tscode); // 获取顶层的 price
+      console.log(this.row.floatProfit); // 获取顶层的 price
+      console.log(this.row.rowId); // 获取顶层的 price
+
+      console.log(this.row.price); // 获取顶层的 price
+      //console.log(this.row.price);
       this.coverForm.direction =
         this.row.direction === "bond_1"
           ? "bond_0"
@@ -396,7 +368,9 @@ export default {
       this.coverForm.price = this.row.price;
       console.log(this.coverForm.price);
       this.coverForm.volume = parseFloat(this.row.restVolume);
+
       this.coverForm.deliveryTime2 = this.row.deliveryTime;
+
       if (
         moment(this.row.deliveryTime).format("YYYY-MM-DD") >
         moment(new Date()).format("YYYY-MM-DD")
@@ -425,6 +399,9 @@ export default {
       this.coverForm.relativeNum = this.row.relativeNum;
       this.getTradeUserList(this.row.realTradeIdList);
       this.getIntendComerList(this.occupyInfo);
+
+      console.log("coverForm");
+      console.log(this.coverForm);
     },
     // 获取下个交易日
     getNextDealDay() {
@@ -437,6 +414,8 @@ export default {
     },
   },
   mounted() {
+    console.log("未平弹窗执行mounted");
+    console.log(this.row);
     this.loadInitData();
   },
 };

@@ -398,20 +398,23 @@
     <el-dialog
       title="平仓"
       width="500px;"
-      :visible.sync="dialogBondsCoverFormVisible"
+      v-model="dialogBondsCoverFormVisible"
       append-to-body
       :destroy-on-close="true"
       :close-on-click-modal="false"
     >
+      <!-- 将 currentRow 作为 `row` 属性传递给子组件 BondsCover -->
+      <!-- 监听子组件 BondsCover 发出的 `change` 事件，执行 `handleBondsCoverDialogVisible` 方法 -->
       <BondsCover
         :row="currentRow"
         @change="handleBondsCoverDialogVisible"
       ></BondsCover>
     </el-dialog>
+
     <el-dialog
       title="未平仓修改申请"
       width="500px;"
-      :visible.sync="dialogNoBondsFormVisible"
+      v-model="dialogNoBondsFormVisible"
       append-to-body
       :destroy-on-close="true"
       :close-on-click-modal="false"
@@ -424,7 +427,7 @@
     <el-dialog
       title="滚单"
       width="50%"
-      :visible.sync="dialogBondsRollFormVisible"
+      v-model="dialogBondsRollFormVisible"
       append-to-body
       :destroy-on-close="true"
       :close-on-click-modal="false"
@@ -470,6 +473,9 @@ export default {
   },
   data() {
     return {
+      dialogVisible: false, // 默认显示弹窗
+      // 平仓弹框
+      dialogBondsCoverFormVisible: false,
       userInfo: {}, // userInfo暴露
       enquiryInfo: {}, // enquiryInfo暴露
       config,
@@ -481,8 +487,7 @@ export default {
       tableData: [],
       isShow: true,
       defaultExpandAll: true,
-      // 平仓弹框
-      dialogBondsCoverFormVisible: false,
+
       currentRow: {},
       // 买
       businessInList: [],
@@ -819,6 +824,7 @@ export default {
     // 初始化数据（未平）
     loadInitData(sort) {
       console.log("未平单---loadInitData");
+      console.log(this.currentRow.price); // 如果 this.currentRow 为 undefined，会抛出错误
       this.loading = true;
       api
         .get({
@@ -927,6 +933,9 @@ export default {
     }),
     // 平仓弹框
     handleBondsCover: debounce(function (row) {
+      console.log("handleBondsCover");
+      console.log("平仓弹框");
+      console.log(row);
       Promise.all([(this.currentRow = JSON.parse(JSON.stringify(row)))]).then(
         () => {
           switch (row.direction) {
@@ -948,6 +957,7 @@ export default {
         }
       );
     }),
+
     // 滚单弹框
     handleRoll(row) {
       Promise.all([
@@ -973,6 +983,8 @@ export default {
     },
     // 滚单弹框回参接收
     handleBondsRollDialogVisible(obj) {
+      console.log("handleBondsRollDialogVisible");
+      console.log(obj);
       this.dialogBondsRollFormVisible = obj.dialogVisible;
       this.loadInitData();
     },
@@ -1071,6 +1083,7 @@ export default {
     // 卖出，买入数据
     initBondsCoverBusinessList(params) {
       const self = this;
+      console.log("initBondsCoverBusinessList");
       apiBondPool.businessList(params).then((res) => {
         if (res.code === "00000") {
           switch (params.bidtype) {
@@ -1083,7 +1096,8 @@ export default {
               self.currentRow.price = self.funcGetBestPrice("min", res.value);
               break;
           }
-          self.dialogBondsCoverFormVisible = true;
+          this.dialogBondsCoverFormVisible = true;
+          console.log("dialogBondsCoverFormVisible显示");
         }
       });
     },
