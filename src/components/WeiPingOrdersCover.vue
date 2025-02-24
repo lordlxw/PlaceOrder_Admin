@@ -184,9 +184,6 @@ export default {
     };
   },
   computed: {
-    ...mapGetters({
-      userInfo: "getUserInfo",
-    }),
     ...mapState({
       occupyInfo: (state) => state.occupyInfo,
     }),
@@ -416,6 +413,7 @@ export default {
   mounted() {
     console.log("未平弹窗执行mounted");
     console.log(this.row);
+
     this.loadInitData();
   },
 };
