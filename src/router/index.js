@@ -51,7 +51,13 @@ const router = createRouter({
         {
           path: '/trade/break',
           component: Break
-        }
+        },
+        
+  // 工单列表
+    {
+      path: '/order/main',
+      component: () => import('@/views/ChatOrder/OrderMain.vue')
+    },
       ]
     },
     {
@@ -64,6 +70,7 @@ const router = createRouter({
       component: LoginView,
       name:'LoginView3'
     },
+
     
   ]
 });
