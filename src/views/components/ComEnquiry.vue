@@ -51,15 +51,475 @@
 
           <!-- 操作列 -->
           <el-table-column
-            label="操作"
-            width="100"
             fixed="right"
             align="center"
+            label="操作"
+            width="220"
           >
             <template v-slot="scope">
-              <el-button size="mini" @click="handleCopy(scope.row)" type="text"
-                >复制</el-button
+              <el-button
+                type="text"
+                v-if="
+                  setAuth('inquiry:edit') &&
+                  [0, 1, 4, 10].indexOf(scope.row.status) !== -1
+                "
+                @click="handleEditEnqury(scope.row)"
+                >修改</el-button
               >
+              <el-button
+                type="text"
+                v-if="setAuth('inquiry:accept') && scope.row.status === 0"
+                @click="handleAcceptClick(scope)"
+                >{{
+                  scope.row.youxianLevel === 2
+                    ? "接收优先复制"
+                    : scope.row.youxianLevel === 1
+                    ? "接收优先复制"
+                    : "接收并复制"
+                }}</el-button
+              >
+              <el-button
+                @click="handleDealClick(scope.row)"
+                type="text"
+                size="small"
+                v-if="
+                  ['1', '4', '8', '10'].indexOf(scope.row.status.toString()) !==
+                    -1 &&
+                  setAuth('inquiry:deal') &&
+                  scope.row.relativeNum &&
+                  scope.row.relativeNum.indexOf('GD_') === -1
+                "
+                >成交</el-button
+              >
+              <el-popover
+                v-if="setAuth('inquiry:rejection') && scope.row.status === 0"
+                placement="bottom-end"
+                :ref="`popover-notaccept-${scope.$index}`"
+              >
+                <p>
+                  确认要<span class="color-red">拒收</span>“<span
+                    class="color-main"
+                    >{{ scope.row.tradeNum }}</span
+                  >”？
+                </p>
+                <div style="text-align: right">
+                  <el-button
+                    type="text"
+                    @click="
+                      handlePopoverClose(
+                        scope,
+                        `popover-notaccept-${scope.$index}`
+                      )
+                    "
+                    >取消</el-button
+                  >
+                  <el-button type="text" @click="handleNotAcceptClick(scope)"
+                    >确认</el-button
+                  >
+                </div>
+                <!-- reference 插槽的写法 -->
+                <template #reference>
+                  <el-button type="text" class="ml10">拒收</el-button>
+                </template>
+              </el-popover>
+              <el-button
+                @click="handleEnquiryDifficultClick(scope.row)"
+                type="text"
+                size="small"
+                v-if="
+                  [1, 4, 8].indexOf(scope.row.status) !== -1 &&
+                  setAuth('inquiry:difficult')
+                "
+                class="ml10"
+                >难成</el-button
+              >
+              <el-button
+                type="text"
+                v-if="
+                  setAuth('inquiry:difficultcanncel') &&
+                  [5, 19].indexOf(scope.row.status) !== -1
+                "
+                @click="handleDifficultNewEnqury(scope.row)"
+                >新建</el-button
+              >
+              <el-popover
+                v-if="
+                  setAuth('inquiry:difficultcanncel') && scope.row.status === 19
+                "
+                placement="bottom-end"
+                :ref="`popover-difficultcanncel-${scope.$index}`"
+              >
+                <p>
+                  确认要<span class="color-red">难成撤单</span>“<span
+                    class="color-main"
+                    >{{ scope.row.tradeNum }}</span
+                  >”？
+                </p>
+                <!-- <div style="text-align: right">
+                  <el-button
+                    type="text"
+                    @click="
+                      handlePopoverClose(
+                        scope,
+                        `popover-difficultcanncel-${scope.$index}`
+                      )
+                    "
+                    >取消</el-button
+                  >
+                  <el-button
+                    type="text"
+                    @click="handleEnquiryDifficultCanncelClick(scope)"
+                    >确认</el-button
+                  >
+                </div> -->
+                <!-- reference 插槽的写法 -->
+                <template #reference>
+                  <el-button type="text" class="ml10">撤单</el-button>
+                </template>
+              </el-popover>
+              <el-popover
+                v-if="setAuth('inquiry:notmove') && scope.row.status === 19"
+                placement="bottom-end"
+                :ref="`popover-notmove-${scope.$index}`"
+              >
+                <p>
+                  确认要<span class="color-red">难成保留</span>“<span
+                    class="color-main"
+                    >{{ scope.row.tradeNum }}</span
+                  >”？
+                </p>
+                <!-- <div style="text-align: right">
+                  <el-button
+                    type="text"
+                    @click="
+                      handlePopoverClose(
+                        scope,
+                        `popover-notmove-${scope.$index}`
+                      )
+                    "
+                    >取消</el-button
+                  >
+                  <el-button
+                    type="text"
+                    @click="handleEnquiryDifficultDotMoveClick(scope)"
+                    >确认</el-button
+                  >
+                </div> -->
+                <!-- reference 插槽的写法 -->
+                <template #reference>
+                  <el-button type="text" class="ml10">保留</el-button>
+                </template>
+              </el-popover>
+              <el-button
+                type="text"
+                v-if="
+                  setAuth('inquiry:accept') &&
+                  [1, 4, 7, 8, 9].indexOf(scope.row.status) !== -1
+                "
+                @click="copy(scope)"
+                :style="
+                  scope.row.youxianLevel === 2
+                    ? { fontWeight: 'bold', color: '#ec0000' }
+                    : ''
+                "
+                >{{
+                  scope.row.youxianLevel === 2
+                    ? "先发复制"
+                    : scope.row.youxianLevel === 1
+                    ? "后发复制"
+                    : "复制"
+                }}</el-button
+              >
+              <el-popover
+                v-if="
+                  ['0', '1', '4'].indexOf(scope.row.status.toString()) !== -1 &&
+                  setAuth('inquiry:cancel')
+                "
+                placement="bottom-end"
+                :ref="`popover-cancel-${scope.$index}`"
+              >
+                <p>
+                  确认要<span class="color-red">撤销</span>“<span
+                    class="color-main"
+                    >{{ scope.row.tradeNum }}</span
+                  >”{{ scope.row.tscode }}？
+                </p>
+                <!-- <div style="text-align: right">
+                  <el-button
+                    type="text"
+                    @click="
+                      handlePopoverClose(
+                        scope,
+                        `popover-cancel-${scope.$index}`
+                      )
+                    "
+                    >取消</el-button
+                  >
+                  <el-button
+                    type="text"
+                    @click="handleInquiryCancelClick(scope)"
+                    >确认</el-button
+                  >
+                </div> -->
+                <!-- reference 插槽的写法 -->
+                <template #reference>
+                  <el-button type="text" class="ml10">撤单</el-button>
+                </template>
+              </el-popover>
+              <el-popover
+                v-if="
+                  ['7'].indexOf(scope.row.status.toString()) !== -1 &&
+                  setAuth('inquiry:agreecancel')
+                "
+                placement="bottom-end"
+                :ref="`popover-agreecancel-${scope.$index}`"
+              >
+                <p>
+                  确认要<span class="color-red">同意撤销</span>“<span
+                    class="color-main"
+                    >{{ scope.row.tradeNum }}</span
+                  >”{{ scope.row.tscode }}？
+                </p>
+                <!-- <div style="text-align: right">
+                  <el-button
+                    type="text"
+                    @click="
+                      handlePopoverClose(
+                        scope,
+                        `popover-agreecancel-${scope.$index}`
+                      )
+                    "
+                    >取消</el-button
+                  >
+                  <el-button
+                    type="text"
+                    @click="handleInquiryCancelConfirmClick(scope)"
+                    >确认</el-button
+                  >
+                </div> -->
+                <!-- reference 插槽的写法 -->
+                <template #reference>
+                  <el-button type="text" class="ml10">同意撤单</el-button>
+                </template>
+              </el-popover>
+              <el-popover
+                v-if="
+                  ['7'].indexOf(scope.row.status.toString()) !== -1 &&
+                  setAuth('inquiry:rejectioncancel')
+                "
+                placement="bottom-end"
+                :ref="`popover-rejectioncancel-${scope.$index}`"
+              >
+                <p>
+                  确认要<span class="color-red">拒绝撤销</span>“<span
+                    class="color-main"
+                    >{{ scope.row.tradeNum }}</span
+                  >”{{ scope.row.tscode }}？
+                </p>
+                <!-- <div style="text-align: right">
+                  <el-button
+                    type="text"
+                    @click="
+                      handlePopoverClose(
+                        scope,
+                        `popover-rejectioncancel-${scope.$index}`
+                      )
+                    "
+                    >取消</el-button
+                  >
+                  <el-button
+                    type="text"
+                    @click="handleInquiryCancelRejectionClick(scope)"
+                    >确认</el-button
+                  >
+                </div> -->
+                <!-- reference 插槽的写法 -->
+                <template #reference>
+                  <el-button type="text" class="ml10">拒绝撤单</el-button>
+                </template>
+              </el-popover>
+              <el-popover
+                v-if="
+                  ['9'].indexOf(scope.row.status.toString()) !== -1 &&
+                  setAuth('inquiry:agreedeal')
+                "
+                placement="bottom-end"
+                :ref="`popover-agreedeal-${scope.$index}`"
+              >
+                <p>
+                  确认要<span class="color-red">同意成交</span>“<span
+                    class="color-main"
+                    >{{ scope.row.tradeNum }}</span
+                  >”{{ scope.row.tscode }}？
+                </p>
+                <div style="text-align: right">
+                  <el-button
+                    type="text"
+                    @click="
+                      handlePopoverClose(
+                        scope,
+                        `popover-agreedeal-${scope.$index}`
+                      )
+                    "
+                    >取消</el-button
+                  >
+                  <el-button
+                    type="text"
+                    @click="handleInquiryDealConfirmClick(scope)"
+                    >确认</el-button
+                  >
+                </div>
+                <!-- reference 插槽的写法 -->
+                <template #reference>
+                  <el-button type="text" class="ml10">同意成交</el-button>
+                </template>
+              </el-popover>
+              <el-popover
+                v-if="
+                  ['9'].indexOf(scope.row.status.toString()) !== -1 &&
+                  setAuth('inquiry:rejectiondeal')
+                "
+                placement="bottom-end"
+                :ref="`popover-rejectiondeal-${scope.$index}`"
+              >
+                <p>
+                  确认要<span class="color-red">拒绝成交</span>“<span
+                    class="color-main"
+                    >{{ scope.row.tradeNum }}</span
+                  >”{{ scope.row.tscode }}？
+                </p>
+                <!-- <div style="text-align: right">
+                  <el-button
+                    type="text"
+                    @click="
+                      handlePopoverClose(
+                        scope,
+                        `popover-rejectiondeal-${scope.$index}`
+                      )
+                    "
+                    >取消</el-button
+                  >
+                  <el-button
+                    type="text"
+                    @click="handleInquiryDealRejectionClick(scope)"
+                    >确认</el-button
+                  >
+                </div> -->
+                <!-- reference 插槽的写法 -->
+                <template #reference>
+                  <el-button type="text" class="ml10">拒绝成交</el-button>
+                </template>
+              </el-popover>
+              <el-popover
+                v-if="
+                  setAuth('inquiry:breaktobeconfirm') && scope.row.status === 20
+                "
+                placement="bottom-end"
+                :ref="`popover-breaktobeconfirm-${scope.$index}`"
+              >
+                <p>
+                  确认要<span class="color-red">同意违约续作</span>“<span
+                    class="color-main"
+                    >{{ scope.row.tradeNum }}</span
+                  >”{{ scope.row.tscode }}？
+                </p>
+                <el-table
+                  border
+                  :data="state.diffTableData"
+                  :cell-style="state.cellStyleUpdate"
+                >
+                  <template v-for="itemHead in state.diffTableHead">
+                    <el-table-column
+                      v-if="itemHead.show"
+                      :key="itemHead.label"
+                      :align="itemHead.align"
+                      :prop="itemHead.prop"
+                      :formatter="
+                        itemHead.formatter
+                          ? itemHead.formatter
+                          : (row, column, cellValue, index) => {
+                              return cellValue;
+                            }
+                      "
+                      :label="itemHead.label"
+                      :width="itemHead.width ? itemHead.width : ''"
+                    >
+                    </el-table-column>
+                  </template>
+                </el-table>
+                <!-- <div style="text-align: center" class="mt20">
+                  <el-button
+                    type="primary"
+                    @click="handleAgreeBreakContinueClick(scope)"
+                    >同意</el-button
+                  >
+                  <el-button
+                    type="default"
+                    @click="handleRejectBreakContinueClick(scope)"
+                    >拒绝</el-button
+                  >
+                </div> -->
+                <!-- <el-button
+                  type="text"
+                  v-slot="reference"
+                  class="ml10"
+                  @click="handlViewBreakContinueContent(scope)"
+                  >违约续作审核</el-button
+                > -->
+              </el-popover>
+              <!-- <el-popover
+                v-if="setAuth('inquiry:agreeedit') && scope.row.status === 23"
+                placement="bottom-end"
+                :ref="`popover-agreeedit-${scope.$index}`"
+              >
+                <p>
+                  确认要<span class="color-red">同意修改</span>“<span
+                    class="color-main"
+                    >{{ scope.row.tradeNum }}</span
+                  >”{{ scope.row.tscode }}？
+                </p>
+                <el-table
+                  border
+                  :data="state.diffTableData"
+                  :cell-style="state.cellStyleUpdate"
+                >
+                  <template v-for="itemHead in state.diffTableHead">
+                    <el-table-column
+                      v-if="itemHead.show"
+                      :key="itemHead.label"
+                      :align="itemHead.align"
+                      :prop="itemHead.prop"
+                      :formatter="
+                        itemHead.formatter
+                          ? itemHead.formatter
+                          : (row, column, cellValue, index) => {
+                              return cellValue;
+                            }
+                      "
+                      :label="itemHead.label"
+                      :width="itemHead.width ? itemHead.width : ''"
+                    >
+                    </el-table-column>
+                  </template>
+                </el-table>
+                <div style="text-align: center" class="mt20">
+                  <el-button type="primary" @click="handleAgreeEditClick(scope)"
+                    >同意</el-button
+                  >
+                  <el-button
+                    type="default"
+                    @click="handleRejectEditClick(scope)"
+                    >拒绝</el-button
+                  >
+                </div>
+                <el-button
+                  type="text"
+                  v-v-slot="reference"
+                  class="ml10"
+                  @click="handlViewEditContent(scope)"
+                  >修改审核</el-button
+                >
+              </el-popover> -->
             </template>
           </el-table-column>
         </el-table>
@@ -70,6 +530,7 @@
 
 <script lang="ts" setup>
 import { computed, reactive, onMounted, ref } from "vue";
+import copy from "clipboard-copy";
 import { useStore } from "vuex";
 import api from "../../api/Trade";
 import apiAdmin from "../../api/Power_Admin";
@@ -86,9 +547,33 @@ import * as util from "../../utils/util";
 import { debounce } from "../../utils/debounce";
 import moment from "moment";
 import { ElMessage } from "element-plus";
+
+// 修改后的 setAuth 方法,将方法从pagemixins提取出来
+const setAuth = (permis: string) => {
+  // 确保 userInfo 存在并且权限信息有效
+  const permissions = userInfo.value?.permissions || [];
+
+  // 进行权限检查
+  const result =
+    permissions[0] === "*:*:*" || permissions.indexOf(permis) !== -1;
+
+  // 如果需要调试权限信息，打印日志
+  if (permis === "inquiry:edit") {
+    console.log("Checking permission for 'inquiry:edit'");
+    console.log("User permissions:", permissions);
+    console.log(`Permission check for '${permis}': ${result}`);
+  }
+
+  return result;
+};
+
 // 获取 Vuex store 实例
 const store = useStore();
+// 直接使用 Mixin
+const mixin = pageMixin;
 
+// 将 mixin 中的 data 转换成响应式对象
+const pageData = reactive(pageMixin.data());
 // 使用 computed 获取 Vuex 中的状态或 getter
 const userInfo = store.getters.getUserInfo;
 
@@ -110,6 +595,8 @@ const relativeNumRoll = ref("");
 
 // 在 setup 中使用 onMounted 钩子来执行挂载逻辑
 onMounted(() => {
+  // 调用你需要的生命周期钩子
+  pageMixin.created?.();
   dispatchUserColumn();
   console.log("询价单ComEnquiry执行挂载！");
   console.log("Comenquiry---userInfo");
@@ -468,6 +955,291 @@ const handleSortChange = (sort) => {
   }
   loadInitData(sort);
 };
+
+// 处理按键
+// 提交撤单申请
+const handleInquiryCancelClick = debounce(function (scope) {
+  api.inquiryCancel({ usertradeId: scope.row.userTradeId }).then((response) => {
+    if (response && response.code === "00000") {
+      this.$message({
+        message: `${response.message}`,
+        type: "success",
+      });
+      this.handlePopoverClose(scope, `popover-cancel-${scope.$index}`);
+      this.loadInitData();
+    }
+  });
+});
+// 确认撤单
+const handleInquiryCancelConfirmClick = debounce(function (scope) {
+  const self = this;
+  api
+    .inquiryCancelConfirm({ usertradeId: scope.row.userTradeId })
+    .then((response) => {
+      if (response && response.code === "00000") {
+        self.$message({
+          message: "已撤单",
+          type: "success",
+        });
+        this.handlePopoverClose(scope, `popover-agreecancel-${scope.$index}`);
+        self.loadInitData();
+      }
+    });
+});
+// 拒绝撤单
+const handleInquiryCancelRejectionClick = debounce(function (scope) {
+  const self = this;
+  api
+    .inquiryCancelRejection({ usertradeId: scope.row.userTradeId })
+    .then((response) => {
+      if (response && response.code === "00000") {
+        self.$message({
+          message: "已拒绝",
+          type: "success",
+        });
+        this.handlePopoverClose(
+          scope,
+          `popover-rejectioncancel-${scope.$index}`
+        );
+        self.loadInitData();
+      }
+    });
+});
+// 同意成交
+const handleInquiryDealConfirmClick = function (scope) {
+  const self = this;
+  api
+    .inquiryDealConfirm({ userTradeId: scope.row.userTradeId })
+    .then((response) => {
+      if (response && response.code === "00000") {
+        this.$message({
+          message: "已成交",
+          type: "success",
+        });
+        this.handlePopoverClose(scope, `popover-agreedeal-${scope.$index}`);
+        self.loadInitData();
+      }
+    });
+};
+// 拒绝成交
+const handleInquiryDealRejectionClick = debounce(function (scope) {
+  const self = this;
+  api
+    .inquiryDealRejection({ userTradeId: scope.row.userTradeId })
+    .then((response) => {
+      if (response && response.code === "00000") {
+        this.$message({
+          message: "已拒绝",
+          type: "success",
+        });
+        this.handlePopoverClose(scope, `popover-rejectiondeal-${scope.$index}`);
+        self.loadInitData();
+      }
+    });
+});
+// 难成撤单
+const handleEnquiryDifficultCanncelClick = debounce(function (scope) {
+  const self = this;
+  api
+    .difficultAcheveCannel({ userTradeId: scope.row.userTradeId })
+    .then((response) => {
+      if (response && response.code === "00000") {
+        this.$message({
+          message: "难成已撤单",
+          type: "warning",
+        });
+        this.handlePopoverClose(
+          scope,
+          `popover-difficultcanncel-${scope.$index}`
+        );
+        self.loadInitData();
+      }
+    });
+});
+// 保留
+const handleEnquiryDifficultDotMoveClick = debounce(function (scope) {
+  const self = this;
+  api.difficultStay({ userTradeId: scope.row.userTradeId }).then((response) => {
+    if (response && response.code === "00000") {
+      this.$message({
+        message: "难成已保留",
+        type: "warning",
+      });
+      this.handlePopoverClose(scope, `popover-notmove-${scope.$index}`);
+      self.loadInitData();
+    }
+  });
+});
+
+// 添加
+function handleAddInquiry() {
+  state.currentDifficultData.value = {}; // 清空当前数据
+  state.action.value = 1; // 设置为添加状态
+  state.dialogEnquiryFormVisible.value = true; // 显示对话框
+}
+
+// 编辑
+function handleEditEnqury(row: any) {
+  state.currentDifficultData.value = JSON.parse(JSON.stringify(row)); // 深拷贝
+  state.currentDifficultData.value.lockDirection = true; // 设置锁定方向
+  state.action.value = 2; // 设置为编辑状态
+  state.dialogEnquiryFormVisible.value = true; // 显示对话框
+}
+
+const handleAcceptClick = function (scope) {
+  if (scope.row.relativeNum.indexOf("GD_") !== -1) {
+    api
+      .bondRollAccept({ relativeNum: scope.row.relativeNum })
+      .then((response) => {
+        if (response && response.code === "00000") {
+          for (let i = 0; i < this.tableData.length; i++) {
+            if (
+              this.tableData[i].relativeNum === scope.row.relativeNum &&
+              this.tableData[i].youxianLevel === 2
+            ) {
+              let myScope = { row: this.tableData[i] };
+              this.copy(myScope);
+              this.$message({
+                message: "已接收并复制成功",
+                type: "success",
+              });
+              break;
+            }
+          }
+          this.loadInitData();
+        } else {
+          this.$message({
+            message: response.message,
+            type: "error",
+          });
+        }
+      });
+  } else {
+    api
+      .inquiryAccept({ usertradeId: scope.row.userTradeId })
+      .then((response) => {
+        if (response && response.code === "00000") {
+          this.copy(scope);
+          this.$message({
+            message: "已接收并复制成功",
+            type: "success",
+          });
+          this.loadInitData();
+        } else {
+          this.$message({
+            message: response.message,
+            type: "error",
+          });
+        }
+      });
+  }
+}; // 设置延迟，调整延迟时间
+
+// 拒收
+// 拒收
+const handleNotAcceptClick = function (scope) {
+  if (scope.row.relativeNum.indexOf("GD_") !== -1) {
+    api
+      .bondRollReject({ relativeNum: scope.row.relativeNum })
+      .then((response) => {
+        if (response && response.code === "00000") {
+          this.$message({
+            message: "已拒收",
+            type: "info",
+          });
+          this.handlePopoverClose(scope, `popover-notaccept-${scope.$index}`);
+          this.loadInitData();
+        } else {
+          this.$message({
+            message: response.message,
+            type: "error",
+          });
+        }
+      });
+  } else {
+    api
+      .inquiryRejection({ usertradeId: scope.row.userTradeId })
+      .then((response) => {
+        if (response && response.code === "00000") {
+          this.$message({
+            message: "已拒收",
+            type: "info",
+          });
+          this.handlePopoverClose(scope, `popover-notaccept-${scope.$index}`);
+          this.loadInitData();
+        } else {
+          this.$message({
+            message: response.message,
+            type: "error",
+          });
+        }
+      });
+  }
+};
+
+const handlePopoverClose = (scope, ref) => {
+  if (!scope._self.$refs[ref].doClose()) {
+    document.body.click();
+  }
+};
+
+// 点击成交
+const handleDealClick = function (row) {
+  Promise.all([(this.dialogDealFormVisible = true)]).then(() => {
+    this.dealForm.deliveryTime = row.deliveryTime;
+    this.$refs.deliveryCanlendar.deliveryTime = row.deliveryTime;
+    if (
+      moment(row.deliveryTime).format("YYYY-MM-DD") >
+      moment(new Date()).format("YYYY-MM-DD")
+    ) {
+      row.deliveryTime = moment(row.deliveryTime).format("YYYY-MM-DD");
+    } else if (
+      moment(row.deliveryTime).format("YYYY-MM-DD") ===
+        moment(new Date()).format("YYYY-MM-DD") &&
+      moment(moment(new Date()).format("YYYY-MM-DD HH:mm:ss")).isBefore(
+        moment(new Date()).format("YYYY-MM-DD 15:30:00")
+      )
+    ) {
+      row.deliveryTime = moment(new Date()).format("YYYY-MM-DD");
+    } else {
+      this.$refs.deliveryCanlendar.getNextDealDay();
+    }
+    row.deliveryTime = moment(row.deliveryTime).format("YYYY-MM-DD");
+    this.dealRows = row;
+    this.dealForm.usertradeId = row.userTradeId;
+    this.dealForm.price = row.price;
+    this.dealForm.volume = row.restVolume;
+    this.dealForm.remark = row.remark;
+    this.dealForm.counterParty = row.counterParty;
+    this.dealForm.contactPerson = row.contactPerson;
+    this.dealForm.contactType = row.contactType;
+  });
+};
+
+function handleDifficultNewEnqury(row) {
+  const self = this;
+  this.action = 1;
+  api
+    .difficultAcheveCannel({ userTradeId: row.userTradeId })
+    .then((response) => {
+      if (response && response.code === "00000") {
+        // 锁住方向
+        response.value.lockDirection = true;
+        self.currentDifficultData = JSON.parse(JSON.stringify(response.value)); // 直接赋值
+        self.dialogEnquiryFormVisible = true;
+      } else {
+        self.$message({
+          message: `${response.message}`,
+          type: "warning",
+        });
+      }
+    });
+}
+// 难成点击事件
+function handleEnquiryDifficultClick(row) {
+  this.currentDifficultRow = JSON.parse(JSON.stringify(row)); // 直接赋值
+  this.dialogEnquiryDifficultFormVisible = true; // 显示弹窗
+}
 </script>
 
 <style lang="scss" scoped>
