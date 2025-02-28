@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@electron/remote": "^2.1.2",
     "axios": "^1.7.9",
     "bootstrap": "^5.3.3",
     "clipboard-copy": "^4.0.1",

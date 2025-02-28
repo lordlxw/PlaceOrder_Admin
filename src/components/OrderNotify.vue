@@ -28,7 +28,7 @@
         </div>
       </div>
     </transition-group>
-    <el-empty v-else description="暂无数据" style="margin-top: 100%"></el-empty>
+    <el-empty v-else description="暂无数据" style="margin-top: 142%"></el-empty>
   </div>
 </template>
 <script>

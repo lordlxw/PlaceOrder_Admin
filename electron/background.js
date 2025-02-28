@@ -7,7 +7,8 @@ const {
     globalShortcut,
     Menu
   } = require("electron");
-
+  const remote = require("@electron/remote/main");
+  remote.initialize();
   // 去掉菜单栏
   //Menu.setApplicationMenu(null);
   const { join } = require("path");
@@ -21,6 +22,8 @@ const {
   const klinevertical = "/simulation/klinevertical";
 
   let loginWindow=null;
+
+  console.log("background.js",remote);
   // 配置参数
   const defaultConfig = {
     id: null, // 窗口唯一id
@@ -250,7 +253,7 @@ const {
         win.webContents.send('window-maximized');
       });
       this.registerShortcut();
-      //remote.enable(win.webContents);
+      remote.enable(win.webContents);
 
     }
   
@@ -437,6 +440,7 @@ const {
       });
   
       ipcMain.handle("getAllDisplays", e => {
+        console.log("ipcMain-getAllDisplays")
         return screen.getAllDisplays();
       });
   
@@ -483,10 +487,12 @@ const {
       });
   
       ipcMain.handle("sendWinMsg", (event, args) => {
+        console.log("ipcMain---sendWinMsg")
         this.getWin(args.id).webContents.send(args.fun, args.data);
       });
   
       ipcMain.handle("focusByID", (event, args) => {
+        console.log("ipcMain---focusByID")
         this.getWin(args.id).focus();
       });
     }

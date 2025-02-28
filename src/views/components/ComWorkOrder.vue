@@ -1,5 +1,6 @@
-<!-- 用户汇总 -->
+<!-- 用户workOrders汇总 -->
 <template>
+  <button @click="openChat">打开聊天</button>
   <div class="content">
     <div
       class="list"
@@ -185,10 +186,6 @@
             <el-tag type="success" class="mr20"
               >可能关联的{{ tableSwitch === 0 ? "询价单" : "成交单" }}</el-tag
             >
-            <!-- <el-radio-group v-model="tableSwitch" size="mini">
-                <el-radio-button :label="0">询价单</el-radio-button>
-                <el-radio-button :label="1">成交单</el-radio-button>
-              </el-radio-group> -->
           </el-col>
           <el-col :span="12" class="text-right">
             <template v-if="tableSwitch === 0">
@@ -219,9 +216,6 @@
           size="small"
           border
         >
-          <!-- <template slot="extra">
-              <el-button type="primary" size="small">操作</el-button>
-            </template> -->
           <el-descriptions-item :label="'工单类型'">
             {{
               config.funcKeyValue(currentOrder.type.toString(), "orderTypes")
@@ -304,7 +298,7 @@
       <el-table
         v-if="tableSwitch === 1"
         ref="noBondsTable"
-        class="mb10"
+        class="mb10,no-hover-table"
         v-swipe-copy
         v-loading="loading"
         :data="noBondsData"
@@ -322,9 +316,7 @@
         :header-cell-style="{ background: '#f8f8f8' }"
         highlight-current-row
       >
-        <!-- :default-sort="{ prop: 'createTime', order: 'descending' }" -->
         <el-table-column width="30"></el-table-column>
-        <!-- <el-table-column v-if="setAuth('nobonds:break')" type="selection" align="center" width="40"></el-table-column> -->
         <template v-for="itemHead in noBondsTable">
           <template v-if="itemHead.show">
             <el-table-column
@@ -394,6 +386,7 @@
       </el-table>
       <el-table
         v-swipe-copy
+        class="no-hover-table"
         v-loading="loading"
         :data="enquiryOrderData"
         tooltip-effect="dark"
@@ -486,7 +479,7 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from "vuex";
+import { mapGetters, mapState, useStore } from "vuex";
 import apiAdmin from "@/api/Power_Admin";
 import api from "@/api/Trade";
 import apiBonds from "@/api/Bonds";
@@ -509,6 +502,7 @@ export default {
   },
   data() {
     return {
+      userInfo: {},
       config,
       loading: false,
       // 表头
@@ -560,14 +554,28 @@ export default {
     },
   },
   computed: {
-    ...mapGetters({
-      userInfo: "getUserInfo",
-    }),
     ...mapState({
       chatWorkOrder: (state) => state.chatWorkOrder,
     }),
   },
   methods: {
+    openChat() {
+      console.log("打开聊天！");
+      const args = {
+        id: "chat",
+        width: 1024, // 窗口宽度
+        height: 968, // 窗口高度
+        minWidth: 1024, // 窗口最小宽度
+        minHeight: 968, // 窗口最小高度
+        isMainWin: false,
+        resize: false, // 是否支持缩放
+        maximize: false, // 最大化窗口
+        isMultiWin: false, // 是否支持多开窗口
+        route: "/simulation/chat",
+      };
+      window.v1.createWin(args);
+    },
+
     handleCellDblClick(row, column, cell, event) {
       if (column.property === "messageId" && row.brokerId && window.v1) {
         window.v1.hasWinsById("chat").then((bool) => {
@@ -693,6 +701,10 @@ export default {
       }
     },
     viewChat(row) {
+      console.log("查看会话");
+      console.log(window.v1);
+      console.log(row);
+      //window.v1.TestMethod();
       if (window.v1) {
         window.v1.hasWinsById("chat").then((bool) => {
           if (bool) {
@@ -824,10 +836,12 @@ export default {
     },
     // 初始化数据
     loadInitData() {
+      console.log("初始化chatworkOrder");
       this.loading = true;
       const createTime = this.orderDate ? this.orderDate + " 00:00:00" : "";
       apiAdmin.findWorkOrder({ createTime }).then((response) => {
         const { code, value } = response;
+        console.log("response", response);
         if (code === "00000" && value) {
           let data = [];
           let vals = value.map((n) => {
@@ -894,14 +908,15 @@ export default {
         row.column.label === "交割量" &&
         parseInt(row.row.volume) < row.row.chengjiaoAmount
       ) {
-        return "color:red";
+        // 返回对象格式的样式
+        return { color: "red" };
       }
       if (row.column.label === "方向") {
         switch (row.row.direction) {
           case "bond_1": // 卖出
-            return "color:#e88585";
+            return { color: "#e88585" }; // 返回对象
           case "bond_0": // 买入
-            return "color:#00da3c";
+            return { color: "#00da3c" }; // 返回对象
         }
       }
     },
@@ -1112,6 +1127,7 @@ export default {
     },
     goHandleOrder(row) {
       this.currentOrder = row;
+      console.log("goHandleOrder", row);
       if (row.type === 2) {
         this.tableSwitch = 1;
         this.noBondsQuery(row);
@@ -1206,6 +1222,10 @@ export default {
     },
   },
   mounted() {
+    const store = useStore(); // 获取 Vuex store 实例
+    this.userInfo = store.getters.getUserInfo;
+
+    console.log("ComWorkOrder-Mounted", this.userInfo);
     this.orderDate = moment(new Date()).format("YYYY-MM-DD");
     this.getUserSummarys();
     this.dispatchUserColumn();
@@ -1214,7 +1234,7 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-@import "@/assets/css/style.scss";
+/* 给 el-table 行添加悬浮效果 */
 
 .orderEditDialog {
   >>> .el-dialog__body {

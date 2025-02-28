@@ -54,6 +54,22 @@ export default {
     },
   },
   methods: {
+    openChat() {
+      const args = {
+        id: "chat",
+        width: 1024, // 窗口宽度
+        height: 968, // 窗口高度
+        minWidth: 1024, // 窗口最小宽度
+        minHeight: 968, // 窗口最小高度
+        isMainWin: false,
+        resize: false, // 是否支持缩放
+        maximize: false, // 最大化窗口
+        isMultiWin: false, // 是否支持多开窗口
+        route: "/simulation/chat",
+      };
+      window.v1.createWin(args);
+    },
+
     viewChat(message) {
       if (window.v1) {
         window.v1.hasWinsById("chat").then((bool) => {

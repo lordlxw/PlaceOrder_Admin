@@ -1,7 +1,7 @@
 <template>
-  <div class="height100">
-    <el-row class="height100">
-      <el-col class="height100 bg-black order-body-left">
+  <div>
+    <el-row>
+      <el-col :span="18" class="height100 bg-black order-body-left">
         <div class="height100">
           <com-work-order
             :height="orderH"
@@ -11,7 +11,11 @@
           ></com-work-order>
         </div>
       </el-col>
-      <el-col class="height100 bg-black order-body-right">
+      <!-- 右侧，宽度占 30% -->
+      <el-col
+        :span="6"
+        class="height100 bg-black order-body-right padding: 10px"
+      >
         <div class="height100 custom-scrollbar">
           <Order-Notify
             :searchParam="searchParam"
@@ -25,6 +29,32 @@
       </el-col>
     </el-row>
   </div>
+  <!-- <div class="height100">
+      <el-row class="height100">
+        <el-col class="height100 bg-black order-body-left">
+          <div class="height100">
+            <com-work-order
+              :height="orderH"
+              :child="true"
+              :searchParam="searchParam"
+              :userSummary="userSummary"
+            ></com-work-order>
+          </div>
+        </el-col>
+        <el-col class="height100 bg-black order-body-right">
+          <div class="height100 custom-scrollbar">
+            <Order-Notify
+              :searchParam="searchParam"
+              :showDo="false"
+              :tableSelection="1"
+              @init="intiUsers"
+              :height="orderH"
+              @handleSelectionChange="userSummaryChange"
+            ></Order-Notify>
+          </div>
+        </el-col>
+      </el-row>
+    </div> -->
 </template>
 
 <script>
@@ -66,9 +96,6 @@ export default {
     },
   },
   computed: {
-    ...mapGetters({
-      userInfo: "getUserInfo",
-    }),
     ...mapState({
       chatMessage: (state) => state.chatMessage,
     }),
