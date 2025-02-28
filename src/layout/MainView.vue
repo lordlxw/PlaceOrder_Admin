@@ -1,5 +1,4 @@
 <template lang="">
-  <h1>这是主界面</h1>
   <SocketElectron></SocketElectron>
   <!-- <button @click="goToTest1">切换1</button>
   <button @click="goToTest2">切换2</button> -->

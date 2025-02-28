@@ -1,6 +1,4 @@
-<template lang="">
-  <div>11222</div>
-</template>
+<template lang=""></template>
 <script>
 import configUtil from "@/utils/config.js";
 export default {

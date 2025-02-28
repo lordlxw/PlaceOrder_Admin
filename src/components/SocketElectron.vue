@@ -5,7 +5,6 @@
         <trade-enquiry ref="tradeEnquiry"></trade-enquiry>
         <div class="both-clear"></div>
       </el-dialog> -->
-    222
   </div>
 </template>
 
