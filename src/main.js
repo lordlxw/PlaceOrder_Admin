@@ -18,7 +18,7 @@ import 'element-plus/dist/index.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'font-awesome/css/font-awesome.min.css'; // 引入fontawesome字体样式
-
+import horizontalScroll from 'el-table-horizontal-scroll'
 // Vue.prototype.$md5 = md5;
 
 // 创建 Vue 应用实例
@@ -27,7 +27,8 @@ console.log(window);
 app.use(ElementPlus);
 app.use(router);
 app.use(store)
-
+// 使用插件
+app.use(horizontalScroll)
 console.log("window"+window);
 // 设置全局属性
 app.config.globalProperties.$md5 = md5;

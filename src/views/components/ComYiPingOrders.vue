@@ -1540,11 +1540,11 @@ export default {
 }
 </style>
 <style>
-thead .el-table-column--selection .cell {
+/* thead .el-table-column--selection .cell {
   display: none !important;
-}
+} */
 
-.myCell .el-checkbox__input {
+/* .myCell .el-checkbox__input {
   display: none !important;
-}
+} */
 </style>

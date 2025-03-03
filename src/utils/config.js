@@ -116,6 +116,11 @@ export default {
     '4': '删除',
     '5': '劫持'
   },
+   // 用户是否删除状态
+   delStatus: {
+    '0': '正常',
+    '1': '删除',
+  },
   // 工单状态
   orderStatus: {
     '0': '未处理',
@@ -291,28 +296,25 @@ export default {
     userTradeNum: { label: '询价单据号', prop: 'userTradeNum', width: '170', align: 'left', show: true },
   },
   // 用户汇总
-  // userSummaryHead: {
-  //   userId: { label: '用户ID', prop: 'userId', width: '70', align: 'left', show: false },
-  //   userName: { label: '用户名', prop: 'userName', width: '100', align: 'left', show: true },
-  //   nickName: { label: '昵称', prop: 'nickName', width: '100', align: 'left', show: true },
-  //   maxVolume: { label: '最大可买', prop: 'maxVolume', width: '100', align: 'left', show: true },
-  //   minProfitAlltime: { label: '总允亏', prop: 'minProfitAlltime', width: '100', align: 'left', show: true, sortable: true },
-  //   minProfitDaily: { label: '日允亏', prop: 'minProfitDaily', width: '100', align: 'left', show: true },
-  //   solidProfit: { label: '总盈亏', prop: 'solidProfit', width: '100', align: 'left', show: true, sortable: true },
-  //   limitBid: { label: '买入笔数', prop: 'limitBid', width: '100', align: 'left', show: true },
-  //   limitOffer: { label: '卖出笔数', prop: 'limitOffer', width: '100', align: 'left', show: true },
-  //   limitDeal: { label: '成交笔数', prop: 'limitDeal', width: '100', align: 'left', show: true, sortable: true },
-  //   limitCancel: { label: '撤单笔数', prop: 'limitCancel', width: '100', align: 'left', show: true },
-  //   level: { label: '用户等级', prop: 'level', width: '100', align: 'left', show: true },
-  //   phonenumber: { label: '电话', prop: 'phonenumber', width: '100', align: 'left', show: true },
-  //   email: { label: '邮箱', prop: 'email', width: '100', align: 'left', show: false },
-  //   sex: { label: '性别', prop: 'sex', width: '60', align: 'left', show: false },
-  //   avatar: { label: '头像', prop: 'avatar', width: '90', align: 'left', show: false },
-  //   status: { label: '用户状态', prop: 'status', width: '100', align: 'left', formatter: this.funcFormat, show: true },
-  //   delFlag: { label: '是否删除', prop: 'delFlag', width: '100', align: 'left', show: true },
-  //   loginIp: { label: '登录IP', prop: 'loginIp', width: '100', align: 'left', show: true },
-  //   loginDate: { label: '登录时间', prop: 'loginDate', width: '160', align: 'left', show: true },
-  // },
+  userSummaryHead: {
+    userId: { label: '用户ID', prop: 'userId', width: '70', align: 'left', show: false },
+    nickName: { label: '昵称', prop: 'nickName', width: '100', align: 'left', show: true },
+    maxVolume: { label: '最大可买', prop: 'maxVolume', width: '100', align: 'left', show: true },
+    minProfitAlltime: { label: '总允亏', prop: 'minProfitAlltime', width: '100', align: 'left', show: true, sortable: true },
+    minProfitDaily: { label: '日允亏', prop: 'minProfitDaily', width: '100', align: 'left', show: true },
+    solidProfit: { label: '总盈亏', prop: 'solidProfit', width: '100', align: 'left', show: true, sortable: true },
+    limitBid: { label: '买入笔数', prop: 'limitBid', width: '100', align: 'left', show: true },
+    limitOffer: { label: '卖出笔数', prop: 'limitOffer', width: '100', align: 'left', show: true },
+    limitDeal: { label: '成交笔数', prop: 'limitDeal', width: '100', align: 'left', show: true, sortable: true },
+    limitCancel: { label: '撤单笔数', prop: 'limitCancel', width: '100', align: 'left', show: true },
+    level: { label: '用户等级', prop: 'level', width: '100', align: 'left', show: true },
+   
+    email: { label: '邮箱', prop: 'email', width: '100', align: 'left', show: false },
+    sex: { label: '性别', prop: 'sex', width: '60', align: 'left', show: false },
+    avatar: { label: '头像', prop: 'avatar', width: '90', align: 'left', show: false },
+    status: { label: '用户状态', prop: 'status', width: '100', align: 'left', show: true },
+    delFlag: { label: '是否删除', prop: 'delFlag', width: '100', align: 'left', show: true },
+  },
  // 交易汇总
   transHistory: {
    dateStart: { label: '开仓日期', prop: 'dateStart', width: '150', align: 'left', show: true, sortable: true },

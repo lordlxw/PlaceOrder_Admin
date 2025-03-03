@@ -24,15 +24,20 @@
         </div>
 
         <!-- 盈利额 -->
-        <div class="metric">
+        <div class="metric" style="width: 30%">
           <h3>盈利额</h3>
-          <p>￥{{ profit }}</p>
         </div>
 
-        <!-- 亏损额 -->
-        <div class="metric">
-          <h3>亏损额</h3>
-          <p>￥{{ loss }}</p>
+        <!-- 用户信息 -->
+        <div class="metric" style="width: 60%">
+          <h3>用户信息</h3>
+          <ComUserInfos
+            :searchParam="searchParam"
+            @init="initChartB"
+            :showDo="true"
+            @handleSelectionChange="userSummaryChange"
+            :tableSelection="0"
+          ></ComUserInfos>
         </div>
       </div>
 
@@ -118,6 +123,8 @@
 
 <script>
 import * as echarts from "echarts";
+import ComUserInfos from "@/views/components/ComUserInfos.vue";
+import ComTest from "@/views/components/ComTest.vue";
 export default {
   data() {
     return {
@@ -131,14 +138,41 @@ export default {
       intervalReturn: 10.5, // 区间收益率（百分比）
       profit: 100000, // 盈利额
       loss: 50000, // 亏损额
+
+      searchParam: {
+        date: ["", ""],
+        userIds: [],
+      }, // 搜索的参数，绑定日期区间和人
     };
   },
+  components: {
+    ComUserInfos, // ✅ 确保注册了组件
+    ComTest,
+  },
   mounted() {
+    this.InitDays();
     this.initBondChart(); // 初始化债券交易频次饼图
 
     this.initMainChart(); // 初始化 主图
   },
   methods: {
+    // 用户改变选择
+    userSummaryChange(rows) {
+      console.log("DashBoard感知用户选中发生变化", rows);
+      const userIds = rows.map((n) => n.userId);
+      if (
+        JSON.stringify(this.searchParam.userIds) !== JSON.stringify(userIds)
+      ) {
+        this.searchParam.userIds = rows.map((n) => n.userId);
+      }
+    },
+    //初始化日期，默认是当天
+    InitDays() {
+      const today = new Date().toISOString().split("T")[0]; // 获取 YYYY-MM-DD 格式的日期
+      this.startDate = today;
+      this.endDate = today;
+      this.searchParam.date = [this.startDate, this.endDate];
+    },
     // 根据周期改变主图
     updateMainDataByPeriod(timeUnit) {
       // 更新选中的时间单位
@@ -329,12 +363,12 @@ export default {
             },
           },
         ],
-        legend: {
-          top: "top", // 让图例居中
-          orient: "vertical", // 垂直方向排列
-          left: "left",
-          data: topFiveData.map((item) => item.bondCode), // 将 legend 数据设置为 bondCode，按顺序排列
-        },
+        // legend: {
+        //   top: "top", // 让图例居中
+        //   orient: "vertical", // 垂直方向排列
+        //   left: "left",
+        //   data: topFiveData.map((item) => item.bondCode), // 将 legend 数据设置为 bondCode，按顺序排列
+        // },
       };
 
       myChart.setOption(option);
@@ -343,7 +377,11 @@ export default {
     applyDateRange() {
       console.log("开始日期:", this.startDate);
       console.log("结束日期:", this.endDate);
+
+      this.searchParam.date = [this.startDate, this.endDate];
       // 在这里实现根据选定日期区间查询数据的逻辑
+
+      console.log("searchParam变化", this.searchParam);
     },
   },
 };
@@ -386,10 +424,12 @@ export default {
 
 .metric {
   background: #f1f1f1;
-  padding: 15px;
-  border-radius: 8px;
+  padding: 10px;
+  border-radius: 5px;
   text-align: center;
   width: 30%;
+
+  max-height: 250px;
 }
 
 .chart {
