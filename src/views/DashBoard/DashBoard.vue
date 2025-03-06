@@ -26,6 +26,7 @@
         <!-- 盈利额 -->
         <div class="metric" style="width: 30%">
           <h3>盈利额</h3>
+          <ComTest></ComTest>
         </div>
 
         <!-- 用户信息 -->
@@ -42,7 +43,7 @@
       </div>
 
       <!-- 收益走势图 -->
-      <div class="chart">
+      <div class="chart" v-show="true">
         <h3>收益走势图</h3>
         <div style="display: flex; width: 100%; margin-top: 20px">
           <div style="flex: 1; display: flex; gap: 10px">
@@ -113,7 +114,13 @@
             >年</el-button
           >
         </el-button-group>
-
+        <el-switch
+          style="margin-top: 20px"
+          v-model="switchValue"
+          size="large"
+          active-text="个人"
+          inactive-text="整体"
+        />
         <!-- 这里可以嵌入图表组件，使用 Chart.js 或其他库 -->
         <div id="main-chart" style="width: 100%; height: 300px"></div>
       </div>
@@ -138,11 +145,16 @@ export default {
       intervalReturn: 10.5, // 区间收益率（百分比）
       profit: 100000, // 盈利额
       loss: 50000, // 亏损额
-
+      switchValue: false,
       searchParam: {
         date: ["", ""],
         userIds: [],
       }, // 搜索的参数，绑定日期区间和人
+
+      rawData: [], //主图的数据(整体数据)
+      personalData: [], // 主图的数据(个人数据)
+
+      myChart: {},
     };
   },
   components: {
@@ -150,12 +162,62 @@ export default {
     ComTest,
   },
   mounted() {
+    this.myChart = echarts.init(document.getElementById("main-chart"));
     this.InitDays();
     this.initBondChart(); // 初始化债券交易频次饼图
 
-    this.initMainChart(); // 初始化 主图
+    // 生成30天的随机数据
+    this.rawData = this.generateRandomData();
+    this.initMainChart(this.rawData, false); // 初始化 主图
+  },
+  watch: {
+    //当按键切换时触发
+    switchValue(newValue) {
+      //let data = newValue ? this.personalData : this.rawData;
+      console.log("按键切换", newValue);
+      if (newValue) {
+        // 说明是个人
+        this.initMainChart(null, newValue);
+      } else {
+        this.initMainChart(this.rawData, false); // 初始化 主图
+      }
+    },
   },
   methods: {
+    // 生成30天的随机数据
+    generateRandomData() {
+      let data = [];
+
+      for (let i = 0; i < 60; i++) {
+        let date = this.formatDate(new Date(2023, 0, i + 1)); // 假设数据是从 2023年1月1日开始
+        let profitLoss = this.randomFloat(-5, 5); // 盈亏数据，范围从 -5 到 5
+        let tradeCount = this.randomInt(10, 40); // 交易笔数，范围从 10 到 40
+
+        data.push({
+          date: date,
+          profitLoss: profitLoss,
+          tradeCount: tradeCount,
+        });
+      }
+
+      return data;
+    },
+    // 随机生成浮动数字
+    randomFloat(min, max) {
+      return (Math.random() * (max - min) + min).toFixed(1); // 返回1位小数
+    },
+
+    // 随机生成整数
+    randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    },
+
+    // 格式化日期
+    formatDate(date) {
+      let month = ("0" + (date.getMonth() + 1)).slice(-2); // 获取月份
+      let day = ("0" + date.getDate()).slice(-2); // 获取日期
+      return `${date.getFullYear()}-${month}-${day}`;
+    },
     // 用户改变选择
     userSummaryChange(rows) {
       console.log("DashBoard感知用户选中发生变化", rows);
@@ -174,20 +236,162 @@ export default {
       this.searchParam.date = [this.startDate, this.endDate];
     },
     // 根据周期改变主图
-    updateMainDataByPeriod(timeUnit) {
-      // 更新选中的时间单位
-      this.active = timeUnit;
-      console.log(this.active);
-      // 根据选择的时间单位更新图表数据
-      if (timeUnit === "week") {
-        // 更新图表为按周显示
-      } else if (timeUnit === "month") {
-        // 更新图表为按月显示
-      } else if (timeUnit === "year") {
-        // 更新图表为按年显示
-      } else if (timeUnit === "day") {
-        // 更新图表为按日显示
+    updateMainDataByPeriod(period) {
+      this.active = period;
+
+      let groupedData = [];
+      if (period === "day") {
+        groupedData = this.rawData;
+        console.log("按日", this.rawData);
+      } else if (period === "week") {
+        groupedData = this.groupDataByWeek();
+      } else if (period === "month") {
+        groupedData = this.groupDataByMonth();
+      } else if (period === "year") {
+        groupedData = this.groupDataByYear();
       }
+
+      console.log("grouedData---", groupedData);
+      this.initMainChart(groupedData);
+    },
+    // 按周汇总
+    groupDataByWeek() {
+      console.log("按周汇总");
+      let result = [];
+      let weekProfit = 0;
+      let weekTrades = 0;
+      let count = 0;
+      let weekStart = "";
+
+      console.log("weekrawData", this.rawData);
+      this.rawData.forEach((d, index) => {
+        // 确保 profitLoss 和 tradeCount 是数值类型
+        const profitLoss = parseFloat(d.profitLoss) || 0; // 将 profitLoss 转为数字类型，默认为 0
+        const tradeCount = parseInt(d.tradeCount, 10) || 0; // 将 tradeCount 转为数字类型，默认为 0
+
+        if (count === 0) weekStart = d.date;
+
+        weekProfit += profitLoss; // 累加利润
+        weekTrades += tradeCount; // 累加交易次数
+        count++;
+
+        if (count === 7 || index === this.rawData.length - 1) {
+          result.push({
+            date: weekStart,
+            profitLoss: weekProfit,
+            tradeCount: weekTrades,
+          });
+          weekProfit = 0;
+          weekTrades = 0;
+          count = 0;
+        }
+      });
+
+      console.log("weekrawData按周数据处理返回后", result);
+      return result;
+    },
+
+    // 按月汇总
+    groupDataByMonth() {
+      console.log("按月汇总");
+      let result = [];
+      let monthProfit = 0;
+      let monthTrades = 0;
+      let monthStart = "";
+
+      console.log("monthRawData", this.rawData);
+      this.rawData.forEach((d, index) => {
+        // 检查 d.date 格式是否为 "YYYY-MM"，并提取年份和月份部分
+        const month = d.date.slice(0, 7); // "YYYY-MM"
+
+        // 打印每个 d.date 的值，检查是否有格式问题
+        console.log("Checking date:", d.date, "Month:", month);
+
+        const profitLoss = parseFloat(d.profitLoss) || 0; // 将 profitLoss 转为数字类型，默认为 0
+        const tradeCount = parseInt(d.tradeCount, 10) || 0; // 将 tradeCount 转为数字类型，默认为 0
+
+        if (monthStart === "") monthStart = month;
+
+        // 只在月份变化时进行汇总
+        if (monthStart === month) {
+          monthProfit += profitLoss;
+          monthTrades += tradeCount;
+        } else {
+          result.push({
+            date: monthStart,
+            profitLoss: monthProfit,
+            tradesCount: monthTrades,
+          });
+
+          // 更新为当前月份，重新计数
+          monthStart = month;
+          monthProfit = profitLoss;
+          monthTrades = tradeCount;
+        }
+
+        // 处理最后一条数据，确保它被加入到结果中
+        if (index === this.rawData.length - 1) {
+          result.push({
+            date: monthStart,
+            profitLoss: monthProfit,
+            tradesCount: monthTrades,
+          });
+        }
+      });
+      // 修改结果中的日期字段，确保日期是 "YYYY-MM-01" 格式
+      result = result.map((item) => {
+        return {
+          ...item,
+          date: item.date + "-01", // 将日期从 "YYYY-MM" 转换为 "YYYY-MM-01"
+        };
+      });
+
+      console.log("weekrawData按月数据处理返回后", result);
+      return result;
+    },
+
+    // 按年汇总
+    groupDataByYear() {
+      console.log("按年汇总");
+      let result = [];
+      let yearProfit = 0;
+      let yearTrades = 0;
+
+      this.rawData.forEach((d, index) => {
+        // 获取年份部分
+        let year = d.date.substring(0, 4); // "YYYY"
+
+        // 确保 profit 和 trades 是数值类型
+        const profitLoss = parseFloat(d.profitLoss) || 0; // 将 profitLoss 转为数字类型，默认为 0
+        const tradeCount = parseInt(d.tradeCount, 10) || 0; // 将 tradeCount 转为数字类型，默认为 0
+
+        // 如果 result 数组为空或该年份的数据不存在，则添加新数据
+        const existingYearData = result.find((item) => item.date === year);
+
+        if (existingYearData) {
+          // 如果该年份的数据已存在，累加数据
+          existingYearData.profitLoss += profitLoss;
+          existingYearData.tradesCount += tradeCount;
+        } else {
+          // 如果该年份的数据不存在，则添加新的条目
+          result.push({
+            date: year,
+            profitLoss: profitLoss,
+            tradesCount: tradeCount,
+          });
+        }
+      });
+
+      // 修改结果中的日期字段，确保日期是 "YYYY-01-01" 格式
+      result = result.map((item) => {
+        return {
+          ...item,
+          date: item.date + "-01-01", // 将日期从 "YYYY" 转换为 "YYYY-01-01"
+        };
+      });
+
+      console.log("weekrawData按年数据处理返回后", result);
+      return result;
     },
 
     // 根据值判断颜色，如果大于 0 小于0就绿色，0=黑色
@@ -196,131 +400,140 @@ export default {
         color: value > 0 ? "green" : value < 0 ? "red" : "black",
       };
     },
-    initMainChart() {
-      // 初始化echarts实例
-      var myChart = echarts.init(document.getElementById("main-chart"));
+    initMainChart(rawData, isPersonalData) {
+      console.log("元数据", rawData);
+      console.log("是否是交易员数据", isPersonalData);
+      // if (!rawData || rawData.length === 0) {
+      //   console.log("数据为空，清空图表");
+      //   this.myChart.clear();
+      //   return;
+      // }
+      console.log("AAAAAA");
+      if (!isPersonalData) {
+        console.log("加载主图");
+        this.renderMainChart(rawData);
+      } else {
+        console.log("加载交易员图");
+        this.renderPersonalChart();
+      }
+    },
+    renderMainChart(rawData) {
+      let dates = rawData.map((item) => item.date);
+      let profitLossData = rawData.map((item) => item.profitLoss);
+      let tradeCountData = rawData.map((item) => item.tradeCount);
 
-      // 设置图表的配置项
-      var option = {
-        title: {
-          text: "盈亏信息与交易笔数",
-          left: "center",
-          top: "0",
-          textStyle: {
-            fontSize: 16,
-            fontWeight: "bold",
-          },
-        },
-        tooltip: {
-          trigger: "axis",
-          axisPointer: {
-            type: "shadow", // 用于柱状图
-          },
-        },
-        legend: {
-          data: ["盈亏(万)", "交易笔数"], // 添加交易笔数的图例
-          top: "15",
-        },
+      let option = {
+        title: { text: "盈亏信息与交易笔数", left: "center", top: "0" },
+        tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+        legend: { data: ["盈亏(万)", "交易笔数"], top: "15" },
         xAxis: {
           type: "category",
           boundaryGap: false,
-          data: [
-            "2023-01-01",
-            "2023-01-02",
-            "2023-01-03",
-            "2023-01-04",
-            "2023-01-05",
-            "2023-01-06",
-            "2023-01-07",
-            "2023-01-08",
-            "2023-01-09",
-            "2023-01-10",
-            "2023-01-11",
-            "2023-01-12",
-            "2023-01-13",
-            "2023-01-14",
-            "2023-01-15",
-            "2023-01-16",
-            "2023-01-17",
-            "2023-01-18",
-            "2023-01-19",
-            "2023-01-20",
-            "2023-01-21",
-            "2023-01-22",
-            "2023-01-23",
-            "2023-01-24",
-            "2023-01-25",
-            "2023-01-26",
-            "2023-01-27",
-            "2023-01-28",
-            "2023-01-29",
-            "2023-01-30",
-          ], // 日期轴，30天数据
+          data: dates,
           axisLabel: {
-            interval: 0, // 每个标签都显示
-            rotate: 0, // 旋转标签
-            formatter: function (value) {
-              return value.substring(5); // 去掉年份部分，只显示月份和日期（格式：01-01）
-            },
+            interval: 0,
+            rotate: 0,
+            formatter: (value) => value.substring(5),
           },
         },
         yAxis: [
+          { type: "value", axisLabel: { formatter: "{value} 万" } },
           {
             type: "value",
-            axisLabel: {
-              formatter: "{value} 万", // 设置单位为万
-            },
-          },
-          {
-            type: "value",
-            axisLabel: {
-              formatter: "{value} 笔", // 交易笔数的单位
-            },
-            position: "right", // 右侧y轴用于显示交易笔数
+            axisLabel: { formatter: "{value} 笔" },
+            position: "right",
           },
         ],
         series: [
           {
             name: "盈亏(万)",
-            type: "bar", // 设置为柱状图
-            data: [
-              -1.2, 2.3, 0.5, -0.8, 1.7, -1.9, 2.0, 0.3, -2.3, 1.1, -3.2, 2.7,
-              1.8, -1.4, 0.9, 2.1, -2.5, 3.3, -1.1, 2.2, -0.5, 1.8, -1.3, 2.4,
-              -0.7, 1.9, -3.1, 2.2, 1.6, 0.7,
-            ], // 盈亏数据，负数为亏损，正数为盈利
+            type: "bar",
+            data: profitLossData,
             itemStyle: {
-              color: function (params) {
-                // 根据盈亏值设置颜色，负值红色，正值绿色
-                return params.value < 0 ? "red" : "green";
-              },
+              color: (params) => (params.value < 0 ? "red" : "green"),
             },
-            barWidth: "25%", // 设置柱状图的宽度比例
-            yAxisIndex: 0, // 使用左侧y轴
+            barWidth: "25%",
+            yAxisIndex: 0,
             label: {
-              show: true, // 显示数据标签
-              position: "top", // 数据标签的位置，'top' 表示在柱状图的顶部
-              formatter: "{c} 万", // 数据标签的格式，这里显示数值后加上 "万"
-              color: "#000", // 标签的颜色
+              show: true,
+              position: "top",
+              formatter: "{c} 万",
+              color: "#000",
             },
           },
           {
             name: "交易笔数",
-            type: "line", // 设置为曲线图
-            data: [
-              10, 12, 15, 18, 20, 13, 17, 19, 22, 25, 30, 28, 24, 26, 22, 18,
-              20, 25, 27, 24, 30, 28, 25, 26, 29, 30, 22, 24, 28, 29,
-            ], // 交易笔数数据
-            yAxisIndex: 1, // 使用右侧y轴
-            smooth: true, // 曲线平滑
-            lineStyle: {
-              color: "blue", // 设置曲线颜色
-            },
+            type: "line",
+            data: tradeCountData,
+            yAxisIndex: 1,
+            smooth: true,
+            lineStyle: { color: "blue" },
           },
         ],
       };
+      this.myChart.setOption(option);
+    },
+    renderPersonalChart() {
+      (this.personalData = [
+        { trader: "张三", date: "2023-10-01", profit: 5000, count: 10 },
+        { trader: "李四", date: "2023-10-01", profit: -2000, count: 5 },
+        { trader: "王五", date: "2023-10-01", profit: 3000, count: 8 },
+        { trader: "张三", date: "2023-10-02", profit: 4000, count: 7 },
+        { trader: "李四", date: "2023-10-02", profit: -1000, count: 3 },
+        { trader: "王五", date: "2023-10-02", profit: 2000, count: 6 },
+        { trader: "张三", date: "2023-10-03", profit: 6000, count: 12 },
+        { trader: "李四", date: "2023-10-03", profit: -3000, count: 4 },
+        { trader: "王五", date: "2023-10-03", profit: 1500, count: 5 },
+        { trader: "张三", date: "2023-10-04", profit: 5500, count: 9 },
+        { trader: "李四", date: "2023-10-04", profit: -2500, count: 6 },
+        { trader: "王五", date: "2023-10-04", profit: 1800, count: 7 },
+        { trader: "张三", date: "2023-10-05", profit: 7000, count: 15 },
+        { trader: "李四", date: "2023-10-05", profit: -4000, count: 8 },
+        { trader: "王五", date: "2023-10-05", profit: 2200, count: 10 },
+        { trader: "张三", date: "2023-10-06", profit: 4500, count: 11 },
+        { trader: "李四", date: "2023-10-06", profit: -1500, count: 5 },
+        { trader: "王五", date: "2023-10-06", profit: 3000, count: 9 },
+        { trader: "张三", date: "2023-10-07", profit: 8000, count: 18 },
+        { trader: "李四", date: "2023-10-07", profit: -5000, count: 10 },
+        { trader: "王五", date: "2023-10-07", profit: 2500, count: 12 },
+      ]),
+        console.log("输出个人信息", this.personalData);
+      if (!this.personalData.length) return;
+      const dates = [...new Set(this.personalData.map((item) => item.date))];
+      const traders = [
+        ...new Set(this.personalData.map((item) => item.trader)),
+      ];
 
-      // 使用刚指定的配置项和数据显示图表
-      myChart.setOption(option);
+      const series = traders.map((trader) => ({
+        name: trader,
+        type: "bar",
+        data: dates.map((date) => {
+          const item = this.personalData.find(
+            (d) => d.date === date && d.trader === trader
+          );
+          return item ? item.profit : 0;
+        }),
+        label: {
+          show: true,
+          position: "top",
+          formatter: (params) => {
+            const item = this.personalData.find(
+              (d) => d.date === dates[params.dataIndex] && d.trader === trader
+            );
+            return item ? `${trader}\n${item.profit}` : "";
+          },
+        },
+      }));
+
+      this.myChart.setOption({
+        tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+        legend: { data: traders },
+        xAxis: { type: "category", data: dates, axisLabel: { interval: 0 } },
+        yAxis: { type: "value" },
+        series,
+        barGap: "10%",
+        barCategoryGap: "30%",
+      });
     },
 
     // 初始化债券交易频次饼图
