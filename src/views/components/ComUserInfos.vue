@@ -76,6 +76,7 @@ export default {
     return {
       config,
       loading: false,
+      hasLoaded: false, // 记录是否已经执行过
       // 表头
       tableHead: [],
       tableData: [],
@@ -97,9 +98,19 @@ export default {
   watch: {
     "searchParam.date": {
       immediate: true, // 将立即以表达式的当前值触发回调
-      handler: function (val, oldVal) {
+      handler: async function (val, oldVal) {
         console.log("ComUserInfos watch调用了");
-        this.loadInitData(this.searchParam);
+
+        // 记录date的值
+        if (JSON.stringify(val) !== JSON.stringify(oldVal)) {
+          // 如果 date 有变化，才执行 loadInitData
+          console.log("Date value changed from", oldVal, "to", val);
+          await this.loadInitData(this.searchParam); // 等待数据加载完成
+
+          // 执行全选操作
+        } else {
+          console.log("date无变化");
+        }
       },
       deep: true,
     },
@@ -185,6 +196,7 @@ export default {
         })
         .then((response) => {
           const { code, value } = response;
+          console.log("用户信息汇总", response);
           if (code === "00000" && value) {
             this.tableData = response.value.map((n) => {
               return { ...n, solidProfit: util.moneyFormat(n.solidProfit, 4) };
@@ -211,6 +223,7 @@ export default {
                 });
             });
             if (!this.initOnce) {
+              this.initOnce = true;
               console.log("initOnce");
               this.$nextTick(() => {
                 // 执行全选
@@ -228,6 +241,7 @@ export default {
             });
           }
           this.loading = false;
+          this.chooseAll();
         });
     },
     // 更新记录表
@@ -280,6 +294,7 @@ export default {
   },
   mounted() {
     this.dispatchUserColumn();
+    console.log("comUserInfo执行mount");
   },
 };
 </script>

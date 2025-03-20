@@ -26,7 +26,7 @@
         <!-- 盈利额 -->
         <div class="metric" style="width: 30%">
           <h3>盈利额</h3>
-          <ComTest></ComTest>
+          <!-- <ComTest></ComTest> -->
         </div>
 
         <!-- 用户信息 -->
@@ -132,6 +132,7 @@
 import * as echarts from "echarts";
 import ComUserInfos from "@/views/components/ComUserInfos.vue";
 import ComTest from "@/views/components/ComTest.vue";
+import api from "@/api/Statistic.js"; // 导入你写的 user.js 文件
 export default {
   data() {
     return {
@@ -184,11 +185,12 @@ export default {
     },
   },
   methods: {
+    getUserIds() {},
     // 生成30天的随机数据
     generateRandomData() {
       let data = [];
 
-      for (let i = 0; i < 60; i++) {
+      for (let i = 0; i < 14; i++) {
         let date = this.formatDate(new Date(2023, 0, i + 1)); // 假设数据是从 2023年1月1日开始
         let profitLoss = this.randomFloat(-5, 5); // 盈亏数据，范围从 -5 到 5
         let tradeCount = this.randomInt(10, 40); // 交易笔数，范围从 10 到 40
@@ -221,12 +223,15 @@ export default {
     // 用户改变选择
     userSummaryChange(rows) {
       console.log("DashBoard感知用户选中发生变化", rows);
+      console.log("112345");
       const userIds = rows.map((n) => n.userId);
+      console.log("userIds", userIds);
       if (
         JSON.stringify(this.searchParam.userIds) !== JSON.stringify(userIds)
       ) {
-        this.searchParam.userIds = rows.map((n) => n.userId);
+        this.searchParam.userIds = userIds;
       }
+      console.log("searchParam", this.searchParam);
     },
     //初始化日期，默认是当天
     InitDays() {
@@ -418,14 +423,39 @@ export default {
       }
     },
     renderMainChart(rawData) {
+      this.myChart.clear();
       let dates = rawData.map((item) => item.date);
       let profitLossData = rawData.map((item) => item.profitLoss);
       let tradeCountData = rawData.map((item) => item.tradeCount);
 
+      // 动态计算柱子的宽度，假设数据量小于某个值时，柱子宽度会变窄
+      let barWidth;
+      if (rawData.length <= 7) {
+        barWidth = "12%"; // 数据量小于或等于7条时，柱子宽度为 10%
+      } else if (rawData.length <= 15) {
+        barWidth = "8%"; // 数据量小于或等于15条时，柱子宽度为 5%
+      } else {
+        barWidth = "5%"; // 数据量大于15条时，柱子宽度为 2%
+      }
+
       let option = {
         title: { text: "盈亏信息与交易笔数", left: "center", top: "0" },
-        tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
-        legend: { data: ["盈亏(万)", "交易笔数"], top: "15" },
+        tooltip: {
+          trigger: "item", // 设置为 'item'，悬浮在具体的数据点上时触发
+          formatter: function (params) {
+            // 使用 formatter 函数自定义悬浮时的显示内容
+            let tooltipHtml = "";
+            // 根据不同的系列类型显示盈亏（万）或交易笔数（笔）
+            tooltipHtml +=
+              params.seriesName +
+              " : " +
+              params.value +
+              (params.seriesName === "盈亏(万)" ? " 万" : " 笔") +
+              "<br>";
+            return tooltipHtml;
+          },
+        },
+        legend: { data: ["盈亏(万)", "交易笔数"], top: "25" },
         xAxis: {
           type: "category",
           boundaryGap: false,
@@ -452,7 +482,7 @@ export default {
             itemStyle: {
               color: (params) => (params.value < 0 ? "red" : "green"),
             },
-            barWidth: "25%",
+            barWidth: barWidth, // 动态调整柱子的宽度
             yAxisIndex: 0,
             label: {
               show: true,
@@ -460,6 +490,7 @@ export default {
               formatter: "{c} 万",
               color: "#000",
             },
+            barGap: "50%", // 增加柱状图间距，防止重叠
           },
           {
             name: "交易笔数",
@@ -468,12 +499,22 @@ export default {
             yAxisIndex: 1,
             smooth: true,
             lineStyle: { color: "blue" },
+            label: {
+              show: true,
+              position: "top",
+              formatter: "{c} 笔",
+              color: "blue",
+            },
+            symbolSize: 6, // 减小折线图标记的大小，防止重叠
+            z: 10, // 设置折线图的 z-index，使其显示在柱状图上方
           },
         ],
       };
       this.myChart.setOption(option);
     },
     renderPersonalChart() {
+      this.myChart.clear();
+      this.personalData = [];
       (this.personalData = [
         { trader: "张三", date: "2023-10-01", profit: 5000, count: 10 },
         { trader: "李四", date: "2023-10-01", profit: -2000, count: 5 },
@@ -590,11 +631,32 @@ export default {
     applyDateRange() {
       console.log("开始日期:", this.startDate);
       console.log("结束日期:", this.endDate);
-
+      // 直接修改 searchParam.date，不重新赋值整个对象
+      // 直接修改 searchParam.date
       this.searchParam.date = [this.startDate, this.endDate];
+      console.log("applyDateRange222", this.searchParam);
+      //this.searchParam.userIds = userIds;
+      //this.searchParam.date = [this.startDate, this.endDate];
       // 在这里实现根据选定日期区间查询数据的逻辑
-
-      console.log("searchParam变化", this.searchParam);
+      // 定义请求参数
+      var params = {
+        endDate: this.endDate,
+        startDate: this.startDate,
+        weidu: "person",
+        userIds: this.searchParam.userIds,
+        channelIds: ["f09639756a47415fb4fbf6d31febbad4"],
+      };
+      console.log("输出params", params);
+      // 调用 API 获取数据
+      api
+        .getWindRate(params)
+        .then((response) => {
+          console.log("胜率数据:", response);
+          // 处理返回的数据，例如存储或展示
+        })
+        .catch((error) => {
+          console.error("获取数据失败:", error);
+        });
     },
   },
 };

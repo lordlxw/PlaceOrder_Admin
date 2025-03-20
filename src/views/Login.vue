@@ -214,6 +214,7 @@ const submitForm = function (formName) {
   console.log("LabelPosition");
   console.log(labelPosition);
   console.log(labelPosition.value);
+  hwinfo = "aff61aa278543f4788e7b203b4b50334";
   api
     .login(
       {
