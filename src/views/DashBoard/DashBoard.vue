@@ -134,6 +134,7 @@ import ComUserInfos from "@/views/components/ComUserInfos.vue";
 import ComTest from "@/views/components/ComTest.vue";
 import api from "@/api/Statistic.js"; // 导入你写的 user.js 文件
 import { markRaw } from "vue";
+import { ElMessage } from "element-plus";
 export default {
   data() {
     return {
@@ -794,6 +795,14 @@ export default {
         };
         console.log("输出params", params);
 
+        if (
+          weiduValue === "person" &&
+          (!this.searchParam.userIds || this.searchParam.userIds.length === 0)
+        ) {
+          console.warn("交易员为空");
+          ElMessage.warning("请至少选择一名交易员");
+          return;
+        }
         // 使用 await 获取请求结果，改为异步调用
         const [winRateResponse, profitLossResponse] = await Promise.all([
           api.getWindRate(params), // 请求胜率数据
