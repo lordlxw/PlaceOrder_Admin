@@ -133,6 +133,7 @@ import * as echarts from "echarts";
 import ComUserInfos from "@/views/components/ComUserInfos.vue";
 import ComTest from "@/views/components/ComTest.vue";
 import api from "@/api/Statistic.js"; // 导入你写的 user.js 文件
+import { markRaw } from "vue";
 export default {
   data() {
     return {
@@ -162,14 +163,17 @@ export default {
     ComUserInfos, // ✅ 确保注册了组件
     ComTest,
   },
+
   mounted() {
-    this.myChart = echarts.init(document.getElementById("main-chart"));
+    //this.myChart = echarts.init(document.getElementById("main-chart"));
+
+    this.myChart = markRaw(echarts.init(document.getElementById("main-chart")));
     this.InitDays();
     this.initBondChart(); // 初始化债券交易频次饼图
 
     // 生成30天的随机数据
     this.rawData = this.generateRandomData();
-    this.initMainChart(this.rawData, false); // 初始化 主图
+    //this.initMainChart(this.rawData, false); // 初始化 主图
   },
   watch: {
     //当按键切换时触发
@@ -185,7 +189,112 @@ export default {
     },
   },
   methods: {
-    getUserIds() {},
+    // 初始化盈亏比/胜率
+    initChart(winRateData, profitLossData, smoothLine) {
+      console.log("胜率数据:", winRateData);
+      console.log("盈亏比数据:", profitLossData);
+
+      // X轴交易员姓名
+      let traderNames = winRateData.map((d) => d.index);
+
+      // 胜率数据（转换为百分比）
+      let winRates = winRateData.map((d) => d.shenglv * 100);
+
+      // 盈亏比数据
+      let profitLossRatios = profitLossData.map((d) => d.yingkuibi);
+
+      // 盈亏值数据
+      let profits = profitLossData.map((d) => d.ying); // 盈
+      let losses = profitLossData.map((d) => d.kui); // 亏
+
+      // 清空现有配置
+      this.myChart.clear();
+
+      let option = {
+        title: { text: "交易胜率 & 盈亏比", left: "center" },
+        tooltip: { trigger: "axis" },
+        legend: {
+          data: ["胜率", "盈亏比", "盈", "亏"],
+          top: "9%",
+          left: "25%",
+          zIndex: 122200, // 设置 zIndex，确保它位于最前面
+        },
+        grid: {
+          left: "15%", // 适当增加
+          right: "15%", // 适当增加
+          bottom: "15%",
+          containLabel: true, // 确保标签不被裁剪
+        },
+        xAxis: {
+          type: "category",
+          data: traderNames,
+          axisLabel: {
+            interval: 0, // 强制显示所有标签
+            fontSize: 12,
+          },
+        },
+        yAxis: [
+          {
+            type: "value",
+            name: "胜率 (%)",
+            min: 0,
+            max: 100,
+            axisLabel: { formatter: "{value} %" },
+          },
+          {
+            type: "value",
+            name: "盈亏比",
+            min: 0,
+            axisLabel: { formatter: "{value}" },
+          },
+        ],
+        series: [
+          {
+            name: "胜率",
+            type: "bar",
+            data: winRates,
+            yAxisIndex: 0,
+            color: "#2196F3",
+            label: { show: true, position: "top", formatter: "{c}%" },
+          },
+          {
+            name: "盈亏比",
+            type: "line",
+            yAxisIndex: 1,
+            data: profitLossRatios,
+            color: "#FF9800",
+            lineStyle: { width: 3 },
+            symbol: "circle",
+            symbolSize: 8,
+            smooth: smoothLine,
+            label: { show: true, position: "top" },
+          },
+          {
+            name: "盈",
+            type: "bar",
+            data: profits,
+            yAxisIndex: 0,
+            color: "#4CAF50", // 绿色，表示盈
+            label: { show: true, position: "top" },
+          },
+          {
+            name: "亏",
+            type: "bar",
+            data: losses,
+            yAxisIndex: 0,
+            color: "#F44336", // 红色，表示亏
+            label: { show: true, position: "top" },
+          },
+        ],
+      };
+      // 绑定图例选中事件
+      this.myChart.on("legendselectchanged", function (params) {
+        console.log("图例选中变化:", params);
+        console.log("当前选择的系列:", params.selected);
+      });
+      this.myChart.setOption(option);
+    },
+
     // 生成30天的随机数据
     generateRandomData() {
       let data = [];
@@ -648,11 +757,30 @@ export default {
       };
       console.log("输出params", params);
       // 调用 API 获取数据
-      api
-        .getWindRate(params)
-        .then((response) => {
-          console.log("胜率数据:", response);
-          // 处理返回的数据，例如存储或展示
+      Promise.all([
+        api.getWindRate(params), // 请求胜率数据
+        api.getYingKui1(params), // 请求盈亏比数据
+      ])
+        .then(([winRateResponse, profitLossResponse]) => {
+          console.log("胜率数据:", winRateResponse);
+          console.log("盈亏比数据:", profitLossResponse);
+
+          if (
+            winRateResponse.code === "00000" &&
+            profitLossResponse.code === "00000"
+          ) {
+            this.initChart(
+              winRateResponse.value,
+              profitLossResponse.value,
+              true
+            );
+          } else {
+            console.error(
+              "API 返回错误:",
+              winRateResponse.code,
+              profitLossResponse.code
+            );
+          }
         })
         .catch((error) => {
           console.error("获取数据失败:", error);
