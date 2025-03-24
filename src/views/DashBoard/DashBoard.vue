@@ -118,8 +118,8 @@
           style="margin-top: 20px"
           v-model="switchValue"
           size="large"
-          active-text="个人"
-          inactive-text="整体"
+          active-text="通道"
+          inactive-text="个人"
         />
         <!-- 这里可以嵌入图表组件，使用 Chart.js 或其他库 -->
         <div id="main-chart" style="width: 100%; height: 300px"></div>
@@ -183,19 +183,14 @@ export default {
     // 使用 $nextTick 确保 DOM 更新完成后再调用 applyDateRange
     setTimeout(() => {
       this.applyDateRange();
-    }, 1200); // 延迟 3 秒（3000 毫秒）
+    }, 2500); // 延迟 3 秒（3000 毫秒）
   },
   watch: {
     //当按键切换时触发
     switchValue(newValue) {
       //let data = newValue ? this.personalData : this.rawData;
       console.log("按键切换", newValue);
-      if (newValue) {
-        // 说明是个人
-        this.initMainChart(null, newValue);
-      } else {
-        this.initMainChart(this.rawData, false); // 初始化 主图
-      }
+      this.applyDateRange();
     },
   },
   methods: {
@@ -217,36 +212,61 @@ export default {
       let profits = profitLossData.map((d) => d.ying); // 盈
       let losses = profitLossData.map((d) => d.kui); // 亏
 
+      // 胜、平、败数据
+      let wins = winRateData.map((d) => d.sheng);
+      let draws = winRateData.map((d) => d.ping);
+      let fails = winRateData.map((d) => d.bai);
+
       // 清空现有配置
       this.myChart.clear();
 
       let option = {
         title: { text: "交易胜率 & 盈亏比", left: "center" },
-        tooltip: { trigger: "axis" },
+        tooltip: {
+          trigger: "axis",
+          formatter: function (params) {
+            let index = params[0].dataIndex;
+            let trader = params[0].axisValue;
+            let win = wins[index];
+            let draw = draws[index];
+            let fail = fails[index];
+            let winRate = winRates[index];
+            let profitLossRatio = profitLossRatios[index];
+            let profit = profits[index];
+            let loss = losses[index];
+
+            return `
+                    <b>${trader}</b><br/>
+                    胜: ${win} 场 | 平: ${draw} 场 | 败: ${fail} 场<br/>
+                    胜率: ${winRate.toFixed(2)}%<br/>
+                    盈亏比: ${profitLossRatio.toFixed(2)}<br/>
+                    盈: ${profit} | 亏: ${loss}
+                `;
+          },
+        },
         legend: {
-          data: ["胜率", "盈亏比", "盈", "亏"],
-          top: "9%",
-          left: "25%",
-          zIndex: 122200, // 设置 zIndex，确保它位于最前面
+          data: ["胜率(%)", "盈亏比", "盈", "亏"],
+          top: "12%",
+          zIndex: 100,
         },
         grid: {
-          left: "15%", // 适当增加
-          right: "15%", // 适当增加
+          left: "15%",
+          right: "15%",
           bottom: "15%",
-          containLabel: true, // 确保标签不被裁剪
+          containLabel: true,
         },
         xAxis: {
           type: "category",
           data: traderNames,
           axisLabel: {
-            interval: 0, // 强制显示所有标签
+            interval: 0,
             fontSize: 12,
           },
         },
         yAxis: [
           {
             type: "value",
-            name: "胜率 (%)",
+            name: "胜率 (%) / 盈亏值",
             min: 0,
             max: 100,
             axisLabel: { formatter: "{value} %" },
@@ -260,12 +280,31 @@ export default {
         ],
         series: [
           {
-            name: "胜率",
+            name: "胜率(%)",
             type: "bar",
-            data: winRates,
             yAxisIndex: 0,
+            data: winRates,
             color: "#2196F3",
+            barWidth: "20%",
             label: { show: true, position: "top", formatter: "{c}%" },
+          },
+          {
+            name: "盈",
+            type: "bar",
+            yAxisIndex: 0,
+            data: profits,
+            color: "#4CAF50",
+            barWidth: "20%",
+            label: { show: true, position: "top" },
+          },
+          {
+            name: "亏",
+            type: "bar",
+            yAxisIndex: 0,
+            data: losses,
+            color: "#F44336",
+            barWidth: "20%",
+            label: { show: true, position: "top" },
           },
           {
             name: "盈亏比",
@@ -279,32 +318,11 @@ export default {
             smooth: smoothLine,
             label: { show: true, position: "top" },
           },
-          {
-            name: "盈",
-            type: "bar",
-            data: profits,
-            yAxisIndex: 0,
-            color: "#4CAF50", // 绿色，表示盈
-            label: { show: true, position: "top" },
-          },
-          {
-            name: "亏",
-            type: "bar",
-            data: losses,
-            yAxisIndex: 0,
-            color: "#F44336", // 红色，表示亏
-            label: { show: true, position: "top" },
-          },
         ],
       };
-      // 绑定图例选中事件
-      this.myChart.on("legendselectchanged", function (params) {
-        console.log("图例选中变化:", params);
-        console.log("当前选择的系列:", params.selected);
-      });
+
       this.myChart.setOption(option);
     },
-
     // 生成30天的随机数据
     generateRandomData() {
       let data = [];
@@ -756,6 +774,7 @@ export default {
     // 应用日期区间筛选
     async applyDateRange() {
       try {
+        console.log("是否切换", this.switchValue);
         console.log("你好呀");
         console.log("开始日期:", this.startDate);
         console.log("结束日期:", this.endDate);
@@ -763,12 +782,13 @@ export default {
         // 直接修改 searchParam.date，不重新赋值整个对象
         this.searchParam.date = [this.startDate, this.endDate];
         console.log("applyDateRange222", this.searchParam);
-
+        // 根据 switchValue 改变 weidu 的值
+        const weiduValue = this.switchValue ? "channel" : "person";
         // 定义请求参数
         const params = {
           endDate: this.endDate,
           startDate: this.startDate,
-          weidu: "person",
+          weidu: weiduValue,
           userIds: this.searchParam.userIds,
           channelIds: ["f09639756a47415fb4fbf6d31febbad4"],
         };
