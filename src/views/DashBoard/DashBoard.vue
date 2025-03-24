@@ -163,17 +163,27 @@ export default {
     ComUserInfos, // ✅ 确保注册了组件
     ComTest,
   },
-
+  created() {
+    // this.InitDays();
+    // console.log("数据看板created");
+    // console.log("输出开始日期：", this.startDate);
+    // console.log("输出结束日期：", this.endDate);
+    // this.applyDateRange(); // 初始化加载一下，默认是按人（不是按channel）
+  },
   mounted() {
     //this.myChart = echarts.init(document.getElementById("main-chart"));
-
-    this.myChart = markRaw(echarts.init(document.getElementById("main-chart")));
     this.InitDays();
+    this.myChart = markRaw(echarts.init(document.getElementById("main-chart")));
+
     this.initBondChart(); // 初始化债券交易频次饼图
 
     // 生成30天的随机数据
     this.rawData = this.generateRandomData();
-    //this.initMainChart(this.rawData, false); // 初始化 主图
+
+    // 使用 $nextTick 确保 DOM 更新完成后再调用 applyDateRange
+    setTimeout(() => {
+      this.applyDateRange();
+    }, 1200); // 延迟 3 秒（3000 毫秒）
   },
   watch: {
     //当按键切换时触发
@@ -344,11 +354,18 @@ export default {
     },
     //初始化日期，默认是当天
     InitDays() {
-      const today = new Date().toISOString().split("T")[0]; // 获取 YYYY-MM-DD 格式的日期
-      this.startDate = today;
-      this.endDate = today;
+      const today = new Date(); // 获取当前日期
+      const startDate = new Date(today); // 创建一个新的 Date 对象来操作
+      startDate.setDate(today.getDate() - 7); // 设置为7天前
+
+      const formattedToday = today.toISOString().split("T")[0]; // 当前日期，格式化为 YYYY-MM-DD
+      const formattedStartDate = startDate.toISOString().split("T")[0]; // 7天前日期，格式化为 YYYY-MM-DD
+
+      this.startDate = formattedStartDate;
+      this.endDate = formattedToday;
       this.searchParam.date = [this.startDate, this.endDate];
     },
+
     // 根据周期改变主图
     updateMainDataByPeriod(period) {
       this.active = period;
@@ -737,54 +754,49 @@ export default {
       myChart.setOption(option);
     },
     // 应用日期区间筛选
-    applyDateRange() {
-      console.log("开始日期:", this.startDate);
-      console.log("结束日期:", this.endDate);
-      // 直接修改 searchParam.date，不重新赋值整个对象
-      // 直接修改 searchParam.date
-      this.searchParam.date = [this.startDate, this.endDate];
-      console.log("applyDateRange222", this.searchParam);
-      //this.searchParam.userIds = userIds;
-      //this.searchParam.date = [this.startDate, this.endDate];
-      // 在这里实现根据选定日期区间查询数据的逻辑
-      // 定义请求参数
-      var params = {
-        endDate: this.endDate,
-        startDate: this.startDate,
-        weidu: "person",
-        userIds: this.searchParam.userIds,
-        channelIds: ["f09639756a47415fb4fbf6d31febbad4"],
-      };
-      console.log("输出params", params);
-      // 调用 API 获取数据
-      Promise.all([
-        api.getWindRate(params), // 请求胜率数据
-        api.getYingKui1(params), // 请求盈亏比数据
-      ])
-        .then(([winRateResponse, profitLossResponse]) => {
-          console.log("胜率数据:", winRateResponse);
-          console.log("盈亏比数据:", profitLossResponse);
+    async applyDateRange() {
+      try {
+        console.log("你好呀");
+        console.log("开始日期:", this.startDate);
+        console.log("结束日期:", this.endDate);
 
-          if (
-            winRateResponse.code === "00000" &&
-            profitLossResponse.code === "00000"
-          ) {
-            this.initChart(
-              winRateResponse.value,
-              profitLossResponse.value,
-              true
-            );
-          } else {
-            console.error(
-              "API 返回错误:",
-              winRateResponse.code,
-              profitLossResponse.code
-            );
-          }
-        })
-        .catch((error) => {
-          console.error("获取数据失败:", error);
-        });
+        // 直接修改 searchParam.date，不重新赋值整个对象
+        this.searchParam.date = [this.startDate, this.endDate];
+        console.log("applyDateRange222", this.searchParam);
+
+        // 定义请求参数
+        const params = {
+          endDate: this.endDate,
+          startDate: this.startDate,
+          weidu: "person",
+          userIds: this.searchParam.userIds,
+          channelIds: ["f09639756a47415fb4fbf6d31febbad4"],
+        };
+        console.log("输出params", params);
+
+        // 使用 await 获取请求结果，改为异步调用
+        const [winRateResponse, profitLossResponse] = await Promise.all([
+          api.getWindRate(params), // 请求胜率数据
+          api.getYingKui1(params), // 请求盈亏比数据
+        ]);
+        console.log("胜率数据:", winRateResponse);
+        console.log("盈亏比数据:", profitLossResponse);
+
+        if (
+          winRateResponse.code === "00000" &&
+          profitLossResponse.code === "00000"
+        ) {
+          this.initChart(winRateResponse.value, profitLossResponse.value, true);
+        } else {
+          console.error(
+            "API 返回错误:",
+            winRateResponse.code,
+            profitLossResponse.code
+          );
+        }
+      } catch (error) {
+        console.error("获取数据失败:", error);
+      }
     },
   },
 };

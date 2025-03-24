@@ -54,7 +54,7 @@ service.interceptors.response.use(
         break;
       default:
         // 其他情况
-        ElMessage.warning("请求失败，请稍后再试");
+        ElMessage.warning("请求失败，请稍后再试"+resp?.message);
         return resp;
     }
   },
